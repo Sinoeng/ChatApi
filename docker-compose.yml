@@ -1,12 +1,18 @@
 volumes:
-  dbdata:
+  userData:
+  messageData:
 
 services:
-  db: 
+  adminer:
+    image: adminer
+    ports:
+      - 8080:8080
+
+  # User section
+  userDB: 
     image: mysql:9.1.0
-    # restart: always
     healthcheck:
-      test: "mysqladmin ping -h localhost -p${DB_ROOT_PASSWORD}"
+      test: "mysqladmin ping -h localhost --silent"
       interval: 1s
       retries: 50
       start_period: 5s
@@ -16,21 +22,40 @@ services:
       MYSQL_PASSWORD: ${DB_PASSWORD}
       MYSQL_DATABASE: ${DB_NAME}
     volumes:
-      - dbdata:/var/lib/mysql
+      - userData:/var/lib/mysql
   
-  adminer:
-    image: adminer
-    # restart: always
-    ports:
-      - 8080:8080
-
-  backend:
-    build: ./src
+  userApi:
+    build: ./database
     environment:
       DB_HOST: db
     depends_on:
-      db:
+      userDB:
         condition: service_healthy
     ports:
       - 8000:8000
 
+  # Message section
+  messageDB:
+    image: mysql:9.1.0
+    healthcheck:
+      test: "mysqladmin ping -h localhost --silent"
+      interval: 1s
+      retries: 50
+      start_period: 5s
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+    volumes:
+      - messageData:/var/lib/mysql
+
+  messageApi:
+    build: ./message
+    environment:
+      DB_HOST: db
+    depends_on:
+      messageDB:
+        condition: service_healthy
+    ports:
+      - 8000:8000
