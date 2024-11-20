@@ -1,61 +1,85 @@
-volumes:
-  userData:
-  messageData:
+# volumes:
+#   userData:
+#   messageData:
 
 services:
-  adminer:
-    image: adminer
-    ports:
-      - 8080:8080
+  pubsub:
+    image: redis
+    container_name: redisPubSub
+    # ports: 
+    # - 6379:6379
 
-  # User section
-  userDB: 
-    image: mysql:9.1.0
-    healthcheck:
-      test: "mysqladmin ping -h localhost --silent"
-      interval: 1s
-      retries: 50
-      start_period: 5s
+  sender:
+    build:
+      dockerfile: database/Dockerfile
+      # context: database
+    restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
-      MYSQL_USER: ${DB_USER}
-      MYSQL_PASSWORD: ${DB_PASSWORD}
-      MYSQL_DATABASE: ${DB_NAME}
-    volumes:
-      - userData:/var/lib/mysql
-  
-  userApi:
-    build: ./database
-    environment:
-      DB_HOST: db
-    depends_on:
-      userDB:
-        condition: service_healthy
-    ports:
-      - 8000:8000
+      PS_HOST: pubsub
+    command: "1"
 
-  # Message section
-  messageDB:
-    image: mysql:9.1.0
-    healthcheck:
-      test: "mysqladmin ping -h localhost --silent"
-      interval: 1s
-      retries: 50
-      start_period: 5s
+  receiver:
+    build:
+      dockerfile: database/Dockerfile
+      # context: database
+    restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
-      MYSQL_USER: ${DB_USER}
-      MYSQL_PASSWORD: ${DB_PASSWORD}
-      MYSQL_DATABASE: ${DB_NAME}
-    volumes:
-      - messageData:/var/lib/mysql
+      PS_HOST: pubsub
+    command: "2"
 
-  messageApi:
-    build: ./message
-    environment:
-      DB_HOST: db
-    depends_on:
-      messageDB:
-        condition: service_healthy
-    ports:
-      - 8000:8000
+  # adminer:
+  #   image: adminer
+  #   ports:
+  #     - 8080:8080
+  #
+  # # User section
+  # userDB: 
+  #   image: mysql:9.1.0
+  #   healthcheck:
+  #     test: "mysqladmin ping -h localhost --silent"
+  #     interval: 1s
+  #     retries: 50
+  #     start_period: 5s
+  #   environment:
+  #     MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+  #     MYSQL_USER: ${DB_USER}
+  #     MYSQL_PASSWORD: ${DB_PASSWORD}
+  #     MYSQL_DATABASE: ${DB_NAME}
+  #   volumes:
+  #     - userData:/var/lib/mysql
+  # 
+  # userApi:
+  #   build: ./database
+  #   environment:
+  #     DB_HOST: db
+  #   depends_on:
+  #     userDB:
+  #       condition: service_healthy
+  #   ports:
+  #     - 8000:8000
+  #
+  # # Message section
+  # messageDB:
+  #   image: mysql:9.1.0
+  #   healthcheck:
+  #     test: "mysqladmin ping -h localhost --silent"
+  #     interval: 1s
+  #     retries: 50
+  #     start_period: 5s
+  #   environment:
+  #     MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+  #     MYSQL_USER: ${DB_USER}
+  #     MYSQL_PASSWORD: ${DB_PASSWORD}
+  #     MYSQL_DATABASE: ${DB_NAME}
+  #   volumes:
+  #     - messageData:/var/lib/mysql
+  #
+  # messageApi:
+  #   build: ./message
+  #   environment:
+  #     DB_HOST: db
+  #   depends_on:
+  #     messageDB:
+  #       condition: service_healthy
+  #   ports:
+  #     - 8000:8000

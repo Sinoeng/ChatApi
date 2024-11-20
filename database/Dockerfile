@@ -14,7 +14,7 @@ FROM alpine:3.20.3 AS deployer
 
 WORKDIR /app
 
-COPY --from=builder /app/program ./program
-COPY .env ./.env
+COPY --from=builder /app/ChatApi ./ChatApi
+# COPY .env ./.env
 
 ENTRYPOINT ["./ChatApi"]
