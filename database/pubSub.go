@@ -18,15 +18,24 @@ func Sender() {
 		Addr: addr, // Redis server address
 	})
 
-	// Publish a message
-    err := rdb.Publish(ctx, "my-channel", "HALOOOOOOOOO").Err()
+    // Publish a message
+    msg := fmt.Sprintf("MESSAGE")
+    err := rdb.Publish(ctx, "my-channel", msg).Err()
     if err != nil {
         log.Fatal(err)
     }
     log.Println("Message sent")
+
+    // Publish a message
+    msg = fmt.Sprintf("MESSAGE2")
+    err = rdb.Publish(ctx, "channel2", msg).Err()
+    if err != nil {
+        log.Fatal(err)
+    }
+    log.Println("Message2 sent")
 }
 
-func Receiver() {
+func Receiver(arg string) {
     addr := fmt.Sprintf("%s:6379", os.Getenv("PS_HOST"))
     log.Printf("Address is %s\n", addr)
 	// Connect to Redis
@@ -37,13 +46,24 @@ func Receiver() {
 	// Subscribe to a channel
 	pubsub := rdb.Subscribe(ctx, "my-channel")
 	defer pubsub.Close()
+    pubsub2 := rdb.Subscribe(ctx, "channel2")
+    defer pubsub.Close()
 
 	// Goroutine to handle messages
-	go func() {
-		for msg := range pubsub.Channel() {
-			fmt.Printf("Received message: %s\n", msg.Payload)
-		}
-	}()
+    switch arg {
+    case "1":
+        go func() {
+            for msg := range pubsub.Channel() {
+                fmt.Printf("Received message: %s\n", msg.Payload)
+            }
+        }()
+    case "2":
+        go func() {
+            for msg := range pubsub2.Channel() {
+                fmt.Printf("Received message: %s\n", msg.Payload)
+            }
+        }()
+    }
 
     select {}
 }

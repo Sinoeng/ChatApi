@@ -25,7 +25,16 @@ services:
     restart: always
     environment:
       PS_HOST: pubsub
-    command: "2"
+    command: ["2", "1"]
+
+  receiver2:
+    build:
+      dockerfile: database/Dockerfile
+      # context: database
+    restart: always
+    environment:
+      PS_HOST: pubsub
+    command: ["2", "2"]
 
   # adminer:
   #   image: adminer

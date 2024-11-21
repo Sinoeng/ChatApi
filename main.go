@@ -20,7 +20,7 @@ func main() {
         }
     case "2":
         log.Println("Starting receiver")
-        database.Receiver()
+        database.Receiver(os.Args[2])
     default:
         log.Fatalln("In the default case")
     }
