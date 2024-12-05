@@ -1,13 +1,15 @@
-package routes
+package api
 
 import (
-	"net/http"
-
 	"github.com/gin-gonic/gin"
 )
 
 func new(c *gin.Context) {
+	println("Request body: ")
+	println(c.Request.Body)
 
+	println("query: ")
+	println(c.Query("name"))
 }
 
 func verify(c *gin.Context) { // verify jwt
@@ -26,8 +28,6 @@ func AddUserRoutes(grp *gin.RouterGroup) {
 
 	user := grp.Group("/user")
 
-	user.GET("/", func(c *gin.Context) {
-		c.JSON(http.StatusOK, "pong")
-	})
+	user.GET("/new", new)
 
 }
