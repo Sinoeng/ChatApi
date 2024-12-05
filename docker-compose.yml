@@ -1,5 +1,5 @@
-# volumes:
-#   userData:
+volumes:
+  userData:
 #   messageData:
 
 services:
@@ -9,41 +9,63 @@ services:
     # ports: 
     # - 6379:6379
 
-  sender:
+  user_db:
+    image: mysql:9.1.0
+    container_name: user_db
+    healthcheck:
+      test: "mysqladmin ping -h localhost"
+      interval: 1s
+      retries: 50
+      start_period: 5s
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - userData:/var/lib/mysql
+    
+  user_service:
     build:
-      dockerfile: database/Dockerfile
-      # context: database
+      context: users
+    container_name: user_service
+    depends_on:
+      user_db:
+        condition: service_healthy
     restart: always
     environment:
       PS_HOST: pubsub
+      DB_HOST: user_db
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_PORT: 3306
     command: "1"
 
-  receiver:
-    build:
-      dockerfile: database/Dockerfile
-      # context: database
-    restart: always
-    environment:
-      PS_HOST: pubsub
-    command: ["2", "1"]
+  # user_recieve:
+  #   build:
+  #     context: users
+  #   restart: always
+  #   environment:
+  #     PS_HOST: pubsub
+  #   command: ["2", "1"]
 
-  receiver2:
-    build:
-      dockerfile: database/Dockerfile
-      # context: database
-    restart: always
-    environment:
-      PS_HOST: pubsub
-    command: ["2", "1"]
-
-  receiver3:
-    build:
-      dockerfile: database/Dockerfile
-      # context: database
-    restart: always
-    environment:
-      PS_HOST: pubsub
-    command: ["2", "1"]
+  # receiver2:
+  #   build:
+  #     context: users
+  #   restart: always
+  #   environment:
+  #     PS_HOST: pubsub
+  #   command: ["2", "1"]
+  #
+  # receiver3:
+  #   build:
+  #     dockerfile: database/Dockerfile
+  #     # context: database
+  #   restart: always
+  #   environment:
+  #     PS_HOST: pubsub
+  #   command: ["2", "1"]
 
   # adminer:
   #   image: adminer

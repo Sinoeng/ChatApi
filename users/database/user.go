@@ -12,8 +12,20 @@ func (self *UserDB) InsertNewUser(username, password string) error {
 		Username: username,
 		Password: password,
 	}
-	err := self.db.Create(&user).Error
-	return err
+	return self.db.Create(&user).Error
+}
+
+func (self *UserDB) InsertNewUserWEmail(username, password, email string) error {
+    user := User{
+        Username: username,
+        Password: password,
+        Email: email,
+    }
+    return self.db.Create(&user).Error
+}
+
+func (self *UserDB) DeleteUserByID(id uint) error {
+    return self.db.Delete(&User{ID: id}).Error
 }
 
 func (self *UserDB) GetUserByID(id uint) (User, error) {
@@ -26,10 +38,6 @@ func (self *UserDB) GetUserByUsername(username string) (User, error) {
 	var res User
 	err := self.db.Where(&User{Username: username}).First(&res).Error
 	return res, err
-}
-
-func (self *UserDB) DeleteUserByID(id uint) error {
-	return self.db.Delete(&User{ID: id}).Error
 }
 
 func (self *UserDB) GetAllUsers() ([]User, error) {
