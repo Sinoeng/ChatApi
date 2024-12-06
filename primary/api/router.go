@@ -10,9 +10,9 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger" // gin-swagger middleware
 )
 
-var db *database.UserDB
+var db *database.ChatApiDB
 
-func InitRouter(database *database.UserDB) *gin.Engine {
+func InitRouter(database *database.ChatApiDB) *gin.Engine {
 	db = database
 	var router = gin.Default()
 

@@ -9,9 +9,9 @@ services:
     # ports: 
     # - 6379:6379
 
-  user_db:
+  primary_db:
     image: mysql:9.1.0
-    container_name: user_db
+    container_name: primary_db
     healthcheck:
       test: "mysqladmin ping -h localhost"
       interval: 1s
@@ -25,17 +25,17 @@ services:
     volumes:
       - userData:/var/lib/mysql
     
-  user_service:
+  primary_service:
     build:
-      context: users
-    container_name: user_service
+      context: primary
+    container_name: primary_service
     depends_on:
-      user_db:
+      primary_db:
         condition: service_healthy
-    restart: always
+    # restart: always
     environment:
       PS_HOST: pubsub
-      DB_HOST: user_db
+      DB_HOST: primary_db
       MYSQL_DATABASE: ${DB_NAME}
       MYSQL_USER: ${DB_USER}
       MYSQL_PASSWORD: ${DB_PASSWORD}

@@ -8,11 +8,11 @@ import (
 	"gorm.io/gorm"
 )
 
-type UserDB struct {
+type ChatApiDB struct {
 	db *gorm.DB // connection pool
 }
 
-func InitDatabase() (*UserDB, error) {
+func InitDatabase() (*ChatApiDB, error) {
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
 		os.Getenv("MYSQL_USER"),
 		os.Getenv("MYSQL_PASSWORD"),
@@ -27,7 +27,7 @@ func InitDatabase() (*UserDB, error) {
 		return nil, err
 	}
 
-	chatApiDB := UserDB{
+	chatApiDB := ChatApiDB{
 		db: db,
 	}
 	err = chatApiDB.autoMigration()
@@ -38,8 +38,10 @@ func InitDatabase() (*UserDB, error) {
 	return &chatApiDB, err
 }
 
-func (self *UserDB) autoMigration() error {
+func (self *ChatApiDB) autoMigration() error {
 	return self.db.AutoMigrate(
 		&User{},
+        &Server{},
+        &Message{},
 	)
 }
