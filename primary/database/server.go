@@ -6,17 +6,34 @@ type Server struct {
 	Users []*User `gorm:"many2many:user_server"`
 }
 
-func (self *ChatApiDB) AddUser(serverID uint, userID uint) error {
-	var user User
-	var server Server
-	err := self.db.First(&user, userID).Error
-	if err != nil {
-		return err
-	}
-	err = self.db.First(&server, serverID).Error
-	if err != nil {
-		return err
-	}
-	err = self.db.Model(&server).Association("Users").Append(&user)
-	return err
+func (self *ChatApiDB) InsertNewServer(name string) error {
+    server := Server{
+        Name: name,
+    }
+    return self.db.Create(&server).Error
+}
+
+func (self *ChatApiDB) DeleteServer(serverID uint) error {
+    return self.db.Delete(&Server{ID: serverID}).Error
+}
+
+func (self *ChatApiDB) ChangeServerName(serverID uint, newName string) error {
+    tx := self.db.Begin()
+    var server Server
+    err := tx.Where(&Server{ID: serverID}).First(&server).Error
+    if err != nil {
+        tx.Rollback()
+        return err
+    }
+    server.Name = newName
+    err = tx.Save(&server).Error
+    if err != nil {
+        tx.Rollback()
+        return err
+    }
+    err = tx.Commit().Error
+    if err != nil {
+        tx.Rollback()
+    }
+    return err
 }

@@ -40,6 +40,9 @@ func (self *ChatApiDB) ChangeEmailByID(userID uint, email string) error {
 		return err
 	}
 	err = tx.Commit().Error
+    if err != nil {
+        tx.Rollback()
+    }
 	return err
 }
 
