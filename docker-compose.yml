@@ -27,11 +27,13 @@ services:
     
   primary_service:
     build:
-      context: primary
+      context: src
     container_name: primary_service
     depends_on:
       primary_db:
         condition: service_healthy
+    ports: 
+      - 8080:8080
     # restart: always
     environment:
       PS_HOST: pubsub
