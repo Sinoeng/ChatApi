@@ -2,8 +2,8 @@ package main
 
 import (
 	"log"
-	"users/api"
-	"users/database"
+	"primary/api"
+	"primary/database"
 )
 
 func main() {

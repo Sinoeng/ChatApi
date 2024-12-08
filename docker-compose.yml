@@ -1,5 +1,5 @@
 volumes:
-  userData:
+  primary_data:
 #   messageData:
 
 services:
@@ -23,7 +23,13 @@ services:
       MYSQL_USER: ${DB_USER}
       MYSQL_PASSWORD: ${DB_PASSWORD}
     volumes:
-      - userData:/var/lib/mysql
+      - primary_data:/var/lib/mysql
+    command: >
+      bash -c '
+      echo "CREATE DATABASE IF NOT EXISTS $DB_NAME_TEST;
+      GRANT ALL ON $DB_NAME_TEST.* TO \`$DB_USER\`@\`%\`;" > /docker-entrypoint-initdb.d/createTestDB.sql;
+      docker-entrypoint.sh mysqld
+      '
     
   primary_service:
     build:
@@ -43,6 +49,26 @@ services:
       MYSQL_PASSWORD: ${DB_PASSWORD}
       MYSQL_PORT: 3306
     command: "1"
+
+  primary_test:
+    build: 
+      context: src
+      dockerfile: test.Dockerfile
+    container_name: primary_service_test
+    profiles:
+      - test
+    depends_on: 
+      primary_db:
+        condition: service_healthy
+    environment:
+      DB_HOST: primary_db
+      MYSQL_DATABASE: ${DB_NAME_TEST}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_PORT: 3306
+    volumes: 
+      - ./coverage:/app/coverage
+
 
   # user_recieve:
   #   build:
