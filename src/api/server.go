@@ -8,7 +8,7 @@ import (
 
 func NewServerHandler(c *gin.Context) {
 	name := c.Query("name")
-	if err := db.InsertNewServer(name); err != nil {
+	if _, err := db.InsertNewServer(name); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not create a new server"})
 	}
 	c.JSON(http.StatusOK, gin.H{"status": "server " + name + " created"})

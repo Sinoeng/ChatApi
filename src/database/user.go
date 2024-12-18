@@ -5,27 +5,29 @@ type User struct {
 	Email    string    `form:"default:null"`
 	Username string    `gorm:"not null;unique"`
 	Password string    `gorm:"not null"`
-	Servers  []*Server `gorm:"many2many:user_server"`
+    Servers  []*Server `gorm:"many2many:user_server;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;joinForeignKey:UserID;joinReferences:ServerID;foreignKey:ID;References:ID"`
 }
 
-func (self *ChatApiDB) InsertNewUser(username, password string) error {
+func (self *ChatApiDB) InsertNewUser(username, password string) (uint, error) {
 	user := User{
 		Username: username,
 		Password: password,
 	}
-	return self.db.Create(&user).Error
+    err := self.db.Create(&user).Error
+    return user.ID, err
 }
 
-func (self *ChatApiDB) InsertNewUserWEmail(username, password, email string) error {
+func (self *ChatApiDB) InsertNewUserWEmail(username, password, email string) (uint, error) {
 	user := User{
 		Username: username,
 		Password: password,
 		Email:    email,
 	}
-	return self.db.Create(&user).Error
+    err := self.db.Create(&user).Error
+    return user.ID, err
 }
 
-func (self *ChatApiDB) ChangeEmailByID(userID uint, email string) error {
+func (self *ChatApiDB) ChangeUserEmailByID(userID uint, email string) error {
 	tx := self.db.Begin()
 	var user User
 	err := tx.Where(&User{ID: userID}).First(&user).Error
