@@ -57,9 +57,16 @@ func NewHandler(c *gin.Context) { //TODO: add email
 		return
 	}
 
-	if err := db.InsertNewUser(usr.Name, string(bytes)); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
+	if usr.Email == "" {
+		if err := db.InsertNewUser(usr.Name, string(bytes)); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+	} else {
+		if err := db.InsertNewUserWEmail(usr.Name, string(bytes), usr.Email); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
 	}
 
 	c.JSON(http.StatusOK, gin.H{"status": "user created successfully"})

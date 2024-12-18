@@ -10,12 +10,12 @@ import (
 type User struct {
 	Name     string `form:"name" json:"name" xml:"name"  binding:"required"`
 	Password string `form:"password" json:"password" xml:"password" binding:"required"`
+	Email    string `form:"email" json:"email" xml:"email"`
 }
 
 // TODO update status codes and look over error handling for ALL functions
 
 func removeHandler(c *gin.Context) { // TODO: add authentication
-
 	tokenAny, exists := c.Get("token")
 	if !exists {
 		return
