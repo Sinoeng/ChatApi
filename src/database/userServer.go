@@ -15,6 +15,12 @@ func (self *ChatApiDB) AddUserToServer(userID uint, serverID uint, role string) 
     return self.db.Create(&userServer).Error
 }
 
+func (self *ChatApiDB) GetUserServerByIDs(userID, serverID uint) (UserServer, error) {
+    var res UserServer
+    err := self.db.Where(&UserServer{UserID: userID, ServerID: serverID}).First(&res).Error
+    return res, err
+}
+
 func (self *ChatApiDB) GetAllUsersByServerID(serverID uint) ([]User, error) {
     var res []User
     var tmp []uint
