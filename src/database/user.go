@@ -5,7 +5,7 @@ type User struct {
 	Email    string    `form:"default:null"`
 	Username string    `gorm:"not null;unique"`
 	Password string    `gorm:"not null"`
-    Servers  []*Server `gorm:"many2many:user_server;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;joinForeignKey:UserID;joinReferences:ServerID;foreignKey:ID;References:ID"`
+    Servers  []Server `gorm:"many2many:user_servers;foreignKey:ID;joinForeignKey:UserID;References:ID;joinReferences:ServerID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 }
 
 func (self *ChatApiDB) InsertNewUser(username, password string) (uint, error) {

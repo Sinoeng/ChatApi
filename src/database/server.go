@@ -3,7 +3,7 @@ package database
 type Server struct {
 	ID    uint    `gorm:"primaryKey"`
 	Name  string  `gorm:"not null"`
-    Users []*User `gorm:"many2many:user_server;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;joinForeignKey:ServerID;joinReferences:UserID;foreignKey:ID;References:ID"`
+    Users []User `gorm:"many2many:user_servers;foreignKey:ID;joinForeignKey:ServerID;References:ID;joinReferences:UserID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 }
 
 func (self *ChatApiDB) InsertNewServer(name string) (uint, error) {
