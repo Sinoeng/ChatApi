@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"golang.org/x/crypto/bcrypt"
+	"github.com/golang-jwt/jwt/v5"
 )
 
 type User struct {
@@ -13,65 +13,30 @@ type User struct {
 }
 
 // TODO update status codes and look over error handling for ALL functions
-func new(c *gin.Context) { //TODO: add email
-	var usr User
 
-	if err := c.Bind(&usr); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+func removeHandler(c *gin.Context) { // TODO: add authentication
+
+	tokenAny, exists := c.Get("token")
+	if !exists {
+		return
+	}
+	token := tokenAny.(*jwt.Token)
+
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not read token claims"})
 		return
 	}
 
-	bytes, err := bcrypt.GenerateFromPassword([]byte(usr.Password), 11)
+	requestName := c.Param("user")
+	tokenName := claims["user"].(string)
 
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "could not hash password"})
+	if requestName != tokenName {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "cannot delete users other than yourself"})
 		return
 	}
 
-	if err := db.InsertNewUser(usr.Name, string(bytes)); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"status": "user created successfully"})
-}
-
-func verify(c *gin.Context) { // verify jwt
-
-}
-
-func login(c *gin.Context) { // issue jwt
-	var creds User
-
-	if err := c.Bind(&creds); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	user, err := db.GetUserByUsername(creds.Name)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(creds.Password))
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"status": "Logged in successfully"}) //TODO: issue jwt
-}
-
-func remove(c *gin.Context) { // TODO: add authentication
-	var reqUsr User
-
-	if err := c.Bind(&reqUsr); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	dbUsr, err := db.GetUserByUsername(reqUsr.Name)
+	dbUsr, err := db.GetUserByUsername(tokenName)
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -83,14 +48,11 @@ func remove(c *gin.Context) { // TODO: add authentication
 		return
 	}
 
+	c.JSON(http.StatusOK, gin.H{"status": "deleted user " + requestName})
 }
 
 func AddUserRoutes(grp *gin.RouterGroup) {
-
 	user := grp.Group("/user")
 
-	user.POST("/new", new)
-	user.POST("/login", login)
-	user.DELETE("/:user", remove)
-
+	user.DELETE("/:user", removeHandler) //TODO make so user only can delete self
 }

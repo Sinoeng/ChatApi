@@ -15,12 +15,6 @@ import (
 // @Produce json
 // @Success 200 {string} Helloworld
 // @Router /ping/ [get]
-func ping(c *gin.Context) {
+func PingHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, "pong")
-}
-
-func AddPingRoutes(grp *gin.RouterGroup) {
-	pingGroup := grp.Group("/ping")
-
-	pingGroup.GET("/", ping)
 }
