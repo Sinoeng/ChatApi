@@ -7,12 +7,49 @@ type UserServer struct {
 }
 
 func (self *ChatApiDB) AddUserToServer(userID uint, serverID uint, role string) error {
-    userServer := UserServer{
-        UserID: userID,
-        ServerID: serverID,
-        Role: role,
+    // userServer := UserServer{
+    //     UserID: userID,
+    //     ServerID: serverID,
+    //     Role: role,
+    // }
+    // return self.db.Create(&userServer).Error
+    var user User
+    var server Server
+    tx := self.db.Begin()
+    err := tx.First(&user, userID).Error
+    if err != nil {
+        tx.Rollback()
+        return err
     }
-    return self.db.Create(&userServer).Error
+    err = tx.First(&server, serverID).Error
+    if err != nil {
+        tx.Rollback()
+        return err
+    }
+    err = tx.Model(&server).Association("Users").Append(&user)
+    if err != nil {
+        tx.Rollback()
+        return err
+    }
+    var userServer UserServer
+    err = tx.Where(&UserServer{UserID: userID, ServerID: serverID}).First(&userServer).Error
+    if err != nil {
+        tx.Rollback()
+        return err
+    }
+    userServer.Role = role
+    err = tx.Save(&userServer).Error
+    if err != nil {
+        tx.Rollback()
+        return err
+    }
+    err = tx.Commit().Error
+    if err != nil {
+        tx.Rollback()
+        return err
+    }
+    return err
+
 }
 
 func (self *ChatApiDB) GetUserServerByIDs(userID, serverID uint) (UserServer, error) {
@@ -29,7 +66,7 @@ func (self *ChatApiDB) GetAllUsersByServerID(serverID uint) ([]User, error) {
 
 func (self *ChatApiDB) GetAllServersByUserID(userID uint) ([]Server, error) {
     var user User
-    err := self.db.Preload("Servers").Where(&User{ID: userID}).First(&user).Error
+    err := self.db.Preload("Servers").First(&user, userID).Error
     return user.Servers, err
 }
 

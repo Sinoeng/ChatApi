@@ -1,11 +1,11 @@
 package database
 
 type User struct {
-	ID       uint      `gorm:"primaryKey"`
-	Email    string    `form:"default:null"`
-	Username string    `gorm:"not null;unique"`
-	Password string    `gorm:"not null"`
-    Servers  []Server `gorm:"many2many:user_servers;foreignKey:ID;joinForeignKey:UserID;References:ID;joinReferences:ServerID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	ID       uint     `gorm:"primaryKey"`
+	Email    string   `form:"default:null"`
+	Username string   `gorm:"not null;unique"`
+	Password string   `gorm:"not null"`
+	Servers  []Server `gorm:"many2many:user_servers;foreignKey:ID;joinForeignKey:UserID;References:ID;joinReferences:ServerID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 }
 
 func (self *ChatApiDB) InsertNewUser(username, password string) (uint, error) {
@@ -13,8 +13,8 @@ func (self *ChatApiDB) InsertNewUser(username, password string) (uint, error) {
 		Username: username,
 		Password: password,
 	}
-    err := self.db.Create(&user).Error
-    return user.ID, err
+	err := self.db.Create(&user).Error
+	return user.ID, err
 }
 
 func (self *ChatApiDB) InsertNewUserWEmail(username, password, email string) (uint, error) {
@@ -23,8 +23,8 @@ func (self *ChatApiDB) InsertNewUserWEmail(username, password, email string) (ui
 		Password: password,
 		Email:    email,
 	}
-    err := self.db.Create(&user).Error
-    return user.ID, err
+	err := self.db.Create(&user).Error
+	return user.ID, err
 }
 
 func (self *ChatApiDB) ChangeUserEmailByID(userID uint, email string) error {
@@ -42,9 +42,9 @@ func (self *ChatApiDB) ChangeUserEmailByID(userID uint, email string) error {
 		return err
 	}
 	err = tx.Commit().Error
-    if err != nil {
-        tx.Rollback()
-    }
+	if err != nil {
+		tx.Rollback()
+	}
 	return err
 }
 
