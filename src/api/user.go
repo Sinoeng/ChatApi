@@ -15,6 +15,28 @@ type User struct {
 
 // TODO update status codes and look over error handling for ALL functions
 
+func GetServersHandler(c *gin.Context) {
+	tokenAny, exists := c.Get("token")
+	if !exists {
+		return
+	}
+	token := tokenAny.(*jwt.Token)
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not read token claims"})
+		return
+	}
+
+	userid := uint(claims["userid"].(float64))
+
+	servers, err := db.GetAllServersByUserID(userid)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error:": "could not find any servers"})
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": servers})
+}
+
 func removeHandler(c *gin.Context) { // TODO: add authentication
 	tokenAny, exists := c.Get("token")
 	if !exists {
@@ -29,17 +51,17 @@ func removeHandler(c *gin.Context) { // TODO: add authentication
 	}
 
 	requestName := c.Param("user")
-	tokenName := claims["user"].(string)
-
-	if requestName != tokenName {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "cannot delete users other than yourself"})
+	dbUsr, err := db.GetUserByUsername(requestName)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	dbUsr, err := db.GetUserByUsername(tokenName)
+	requestID := dbUsr.ID
+	tokenID := uint(claims["userid"].(float64))
 
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	if requestID != tokenID {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "cannot delete users other than yourself"})
 		return
 	}
 
@@ -55,4 +77,5 @@ func AddUserRoutes(grp *gin.RouterGroup) {
 	user := grp.Group("/user")
 
 	user.DELETE("/:user", removeHandler) //TODO make so user only can delete self
+	user.GET("/servers", GetServersHandler)
 }

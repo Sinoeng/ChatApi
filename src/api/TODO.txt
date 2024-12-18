@@ -1,0 +1,4 @@
+make checks for admin status in jwt in change server name and delete server
+fix GET localhost:8080/v1/user/servers users is null
+make delete user take id
+make get /user/servers take user id

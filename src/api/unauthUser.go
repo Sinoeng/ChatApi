@@ -30,10 +30,27 @@ func LoginHandler(c *gin.Context) { // issue jwt
 		return
 	}
 
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"user": creds.Name,
-		"iat":  time.Now(),
-		"exp":  time.Now().Add(7 * 24 * time.Hour), //TODO: add user role
+	dbUser, err := db.GetUserByUsername(creds.Name)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	type MyCustomClaims struct {
+		Username string `json:"username"`
+		Userid   uint   `json:"userid"`
+		jwt.RegisteredClaims
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, MyCustomClaims{
+		Username: creds.Name,
+		Userid:   dbUser.ID,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(24 * time.Hour)),
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
+			NotBefore: jwt.NewNumericDate(time.Now()),
+			Issuer:    "ChatApi",
+		},
 	})
 
 	// Sign and get the complete encoded token as a string using the secret

@@ -24,7 +24,7 @@ func JWT() gin.HandlerFunc {
 		}
 
 		if claims, ok := token.Claims.(jwt.MapClaims); ok {
-			fmt.Print(claims["user"])
+			fmt.Print(claims["username"])
 		} else {
 			fmt.Println(err)
 			return
