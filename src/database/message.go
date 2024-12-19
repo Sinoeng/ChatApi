@@ -38,3 +38,9 @@ func (self *ChatApiDB) GetMessagesByUserID(userID uint) ([]Message, error) {
 	err := self.db.Where(&Message{UserID: userID}).Find(&res).Error
 	return res, err
 }
+
+func (self *ChatApiDB) GetMessagesByUserIDAndServerID(userID, serverID uint) ([]Message, error) {
+    var res []Message
+    err := self.db.Where(&Message{UserID: userID, ServerID: serverID}).Find(&res).Error
+    return res, err
+}

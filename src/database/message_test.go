@@ -106,3 +106,49 @@ func TestDeleteMessage(t *testing.T) {
         t.Fatalf("Faulty error. Error: %s\n", err.Error())
     }
 }
+
+func TestMessagesByUserIDAndServerID(t *testing.T) {
+    resetDB()
+    username := "john"
+    password := "pass"
+    userID, err := db.InsertNewUser(username, password)
+    checkErr(t, "Error inserting user", err)
+
+    username2 := "jack"
+    password2 := "pass"
+    userID2, err := db.InsertNewUser(username2, password2)
+    checkErr(t, "Error inserting user", err)
+
+    name := "guld"
+    serverID, err := db.InsertNewServer(name)
+    checkErr(t, "Error inserting server", err)
+
+    err = db.AddUserToServer(userID, serverID, ROLE_NORMAL)
+    checkErr(t, "Error adding user1 to server1", err)
+    err = db.AddUserToServer(userID2, serverID, ROLE_NORMAL)
+    checkErr(t, "Error adding user1 to server1", err)
+
+    payload := "content"
+    _, err = db.NewMessage(payload, userID, serverID)
+    checkErr(t, "Error leaving message", err)
+    _, err = db.NewMessage(payload, userID, serverID)
+    checkErr(t, "Error leaving message", err)
+    _, err = db.NewMessage(payload, userID, serverID)
+    checkErr(t, "Error leaving message", err)
+    _, err = db.NewMessage(payload, userID2, serverID)
+    checkErr(t, "Error leaving message", err)
+
+    msgs, err := db.GetMessagesByUserIDAndServerID(userID, serverID)
+    checkErr(t, "Error getting messages by userID and serverID", err)
+
+    if len(msgs) != 3 {
+        t.Fatal("Unexpected number of messages")
+    }
+
+    msgs, err = db.GetMessagesByUserIDAndServerID(userID2, serverID)
+    checkErr(t, "Error getting messages by userID2 and serverID", err)
+
+    if len(msgs) != 1 {
+        t.Fatal("Unexpected number of messages")
+    }
+}
