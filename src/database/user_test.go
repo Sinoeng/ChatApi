@@ -79,10 +79,88 @@ func TestInsertNerUserWEmail(t *testing.T) {
     if len(users) != 2 {
         t.Fatal("Unexpected number of users")
     }
-    if users[0].Username != username || users[0].Password != password || users[0].Email != email {
+    if users[0].Username != username || users[0].Password != password || users[0].Email != email || users[0].Admin {
         t.Fatalf("User1 data is incorrect %+v\n", users[0])
     }
-    if users[1].Username != username2 || users[1].Password != password2 || users[1].Email != email2 {
+    if users[1].Username != username2 || users[1].Password != password2 || users[1].Email != email2 || users[1].Admin {
+        t.Fatalf("User2 data is incorrect %+v\n", users[1])
+    }
+}
+
+func TestInsertNewUserAsAdmin(t *testing.T) {
+    resetDB()
+    username := "john"
+    password := "pass"
+    _, err := db.InsertNewUserAsAdmin(username, password)
+    checkErr(t, "Error inserting user", err)
+
+    username2 := "john2"
+    password2 := "pass"
+    _, err = db.InsertNewUserAsAdmin(username2, password2)
+    checkErr(t, "Error inserting user2", err)
+
+    _, err = db.InsertNewUser(username2, password2)
+    switch e := err.(type) {
+    case *mysqlErr.MySQLError:
+        switch e.Number {
+        case 1062:
+            // OK
+            break
+        default:
+            t.Fatalf("Unrecognised error number. Error: %s\n", err.Error())
+        }
+    default:
+        t.Fatalf("Unrecognised error. Error: %s\n", err.Error())
+    }
+    users, err := db.GetAllUsers()
+    checkErr(t, "Error getting users", err)
+    if len(users) != 2 {
+        t.Fatal("Unexpected number of users")
+    }
+    if users[0].Username != username || users[0].Password != password || users[0].Email != "" || !users[0].Admin {
+        t.Fatalf("User1 data is incorrect %+v\n", users[0])
+    }
+    if users[1].Username != username2 || users[1].Password != password2 || users[1].Email != "" || !users[1].Admin {
+        t.Fatalf("User2 data is incorrect %+v\n", users[1])
+    }
+}
+
+func TestInsertNewUserWEmailAsAdmin(t *testing.T) {
+    resetDB()
+    username := "john"
+    password := "pass"
+    email := "john.son@gmail.com"
+    _, err := db.InsertNewUserWEmailAsAdmin(username, password, email)
+    checkErr(t, "Error inserting user", err)
+
+    username2 := "john2"
+    password2 := "pass"
+    email2 := "john.son2@gmail.com"
+    _, err = db.InsertNewUserWEmailAsAdmin(username2, password2, email2)
+    checkErr(t, "Error inserting user2", err)
+
+    _, err = db.InsertNewUser(username2, password2)
+    switch e := err.(type) {
+    case *mysqlErr.MySQLError:
+        switch e.Number {
+        case 1062:
+            // OK
+            break
+        default:
+            t.Fatalf("Unrecognised error number. Error: %s\n", err.Error())
+        }
+    default:
+        t.Fatalf("Unrecognised error. Error: %s\n", err.Error())
+    }
+    users, err := db.GetAllUsers()
+    checkErr(t, "Error getting users", err)
+    if len(users) != 2 {
+        t.Fatal("Unexpected number of users")
+    }
+    if users[0].Username != username || users[0].Password != password || users[0].Email != email || !users[0].Admin {
+        t.Fatalf("User1 data is incorrect %+v\n", users[0])
+    }
+    if users[1].Username != username2 || users[1].Password != password2 || users[1].Email != email2 || !users[1].Admin {
         t.Fatalf("User2 data is incorrect %+v\n", users[1])
     }
 }
@@ -173,5 +251,55 @@ func TestGetUserByID(t *testing.T) {
 
     if user.ID != users[0].ID || user.Username != users[0].Username || user.Password != users[0].Password || user.Email != users[0].Email {
         t.Fatal("User was not identical")
+    }
+}
+
+func TestMakeUserAdmin(t *testing.T) {
+    resetDB()
+    username := "john"
+    password := "pass"
+    id, err := db.InsertNewUser(username, password)
+    checkErr(t, "Error inserting user", err)
+
+    user, err := db.GetUserByID(id)
+    checkErr(t, "Error getting user", err)
+
+    if user.Username != username || user.Password != password || user.Email != "" || user.Admin {
+        t.Fatalf("User data is incorrect %+v\n", user)
+    }
+
+    err = db.MakeUserAdmin(id)
+    checkErr(t, "Error making user admin", err)
+
+    user, err = db.GetUserByID(id)
+    checkErr(t, "Error getting user", err)
+
+    if user.Username != username || user.Password != password || user.Email != "" || !user.Admin {
+        t.Fatalf("User data is incorrect %+v\n", user)
+    }
+}
+
+func TestUnMakeUserAdmin(t *testing.T) {
+    resetDB()
+    username := "john"
+    password := "pass"
+    id, err := db.InsertNewUserAsAdmin(username, password)
+    checkErr(t, "Error inserting user", err)
+
+    user, err := db.GetUserByID(id)
+    checkErr(t, "Error getting user", err)
+
+    if user.Username != username || user.Password != password || user.Email != "" || !user.Admin {
+        t.Fatalf("User data is incorrect %+v\n", user)
+    }
+
+    err = db.UnMakeUserAdmin(id)
+    checkErr(t, "Error making user admin", err)
+
+    user, err = db.GetUserByID(id)
+    checkErr(t, "Error getting user", err)
+
+    if user.Username != username || user.Password != password || user.Email != "" || user.Admin {
+        t.Fatalf("User data is incorrect %+v\n", user)
     }
 }
