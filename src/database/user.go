@@ -3,12 +3,13 @@ package database
 import "gorm.io/gorm/clause"
 
 type User struct {
-	ID       uint     `gorm:"primaryKey"`
-	Username string   `gorm:"not null;unique"`
-	Password string   `gorm:"not null"`
-	Email    string   `gorm:"default:null"`
-	Admin    bool     `gorm:"default:false"`
-	Servers  []Server `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;many2many:user_servers;foreignKey:ID;joinForeignKey:UserID;References:ID;joinReferences:ServerID;"`
+	ID       uint      `gorm:"primaryKey"`
+	Username string    `gorm:"not null;unique"`
+	Password string    `gorm:"not null"`
+	Email    string    `gorm:"default:null"`
+	Admin    bool      `gorm:"default:false"`
+	Servers  []Server  `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;many2many:user_servers;foreignKey:ID;joinForeignKey:UserID;References:ID;joinReferences:ServerID;"`
+	Messages []Message `gorm:"foreignKey:UserID"`
 }
 
 func (self *ChatApiDB) InsertNewUser(username, password string) (uint, error) {
@@ -95,45 +96,45 @@ func (self *ChatApiDB) GetAllUsers() ([]User, error) {
 }
 
 func (self *ChatApiDB) MakeUserAdmin(userID uint) error {
-    var user User
-    tx := self.db.Begin()
-    err := tx.First(&user, userID).Error
-    if err != nil {
-        tx.Rollback()
-        return err
-    }
+	var user User
+	tx := self.db.Begin()
+	err := tx.First(&user, userID).Error
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
 
-    user.Admin = true
-    err = tx.Save(&user).Error
-    if err != nil {
-        tx.Rollback()
-        return err
-    }
-    err = tx.Commit().Error
-    if err != nil {
-        tx.Rollback()
-    }
-    return err
+	user.Admin = true
+	err = tx.Save(&user).Error
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+	err = tx.Commit().Error
+	if err != nil {
+		tx.Rollback()
+	}
+	return err
 }
 
 func (self *ChatApiDB) UnMakeUserAdmin(userID uint) error {
-    var user User
-    tx := self.db.Begin()
-    err := tx.First(&user, userID).Error
-    if err != nil {
-        tx.Rollback()
-        return err
-    }
+	var user User
+	tx := self.db.Begin()
+	err := tx.First(&user, userID).Error
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
 
-    user.Admin = false
-    err = tx.Save(&user).Error
-    if err != nil {
-        tx.Rollback()
-        return err
-    }
-    err = tx.Commit().Error
-    if err != nil {
-        tx.Rollback()
-    }
-    return err
+	user.Admin = false
+	err = tx.Save(&user).Error
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+	err = tx.Commit().Error
+	if err != nil {
+		tx.Rollback()
+	}
+	return err
 }

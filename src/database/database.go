@@ -76,9 +76,9 @@ func InitDatabase() (*ChatApiDB, error) {
 
 func (self *ChatApiDB) autoMigration() error {
 	return self.db.AutoMigrate(
-        &Message{},
         &Server{},
 		&User{},
+        &Message{},
         &UserServer{},
 	)
 }

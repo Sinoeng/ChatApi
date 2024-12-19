@@ -3,9 +3,10 @@ package database
 import "gorm.io/gorm/clause"
 
 type Server struct {
-	ID    uint   `gorm:"primaryKey"`
-	Name  string `gorm:"not null"`
-	Users []User `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;many2many:user_servers;foreignKey:ID;joinForeignKey:ServerID;References:ID;joinReferences:UserID;"`
+	ID       uint      `gorm:"primaryKey"`
+	Name     string    `gorm:"not null"`
+	Users    []User    `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;many2many:user_servers;foreignKey:ID;joinForeignKey:ServerID;References:ID;joinReferences:UserID;"`
+	Messages []Message `gorm:"foreignKey:ServerID"`
 }
 
 func (self *ChatApiDB) InsertNewServer(name string) (uint, error) {
