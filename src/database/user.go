@@ -1,11 +1,14 @@
 package database
 
+import "gorm.io/gorm/clause"
+
 type User struct {
 	ID       uint     `gorm:"primaryKey"`
 	Email    string   `form:"default:null"`
 	Username string   `gorm:"not null;unique"`
 	Password string   `gorm:"not null"`
-	Servers  []Server `gorm:"many2many:user_servers;foreignKey:ID;joinForeignKey:UserID;References:ID;joinReferences:ServerID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	Admin    bool     `gorm:"default:false"`
+	Servers  []Server `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;many2many:user_servers;foreignKey:ID;joinForeignKey:UserID;References:ID;joinReferences:ServerID;"`
 }
 
 func (self *ChatApiDB) InsertNewUser(username, password string) (uint, error) {
@@ -49,7 +52,7 @@ func (self *ChatApiDB) ChangeUserEmailByID(userID uint, email string) error {
 }
 
 func (self *ChatApiDB) DeleteUserByID(id uint) error {
-	return self.db.Delete(&User{ID: id}).Error
+	return self.db.Select(clause.Associations).Delete(&User{ID: id}).Error
 }
 
 func (self *ChatApiDB) GetUserByID(id uint) (User, error) {

@@ -7,12 +7,32 @@ type UserServer struct {
 }
 
 func (self *ChatApiDB) AddUserToServer(userID uint, serverID uint, role string) error {
+    // var user User
+    // var server Server
+    // tx := self.db.Begin()
+    // err := tx.First(&user, userID).Error
+    // if err != nil {
+    //     tx.Rollback()
+    //     return err
+    // }
+    // err = tx.First(&server, serverID).Error
+    // if err != nil {
+    //     tx.Rollback()
+    //     return err
+    // }
     // userServer := UserServer{
     //     UserID: userID,
     //     ServerID: serverID,
     //     Role: role,
     // }
-    // return self.db.Create(&userServer).Error
+    // err = tx.Create(&userServer).Error
+    // if err != nil {
+    //     tx.Rollback()
+    //     return err
+    // }
+    // err = tx.Commit().Error
+    // return err
+
     var user User
     var server Server
     tx := self.db.Begin()

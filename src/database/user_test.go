@@ -1,9 +1,11 @@
 package database
 
 import (
+	"errors"
 	"testing"
 
 	mysqlErr "github.com/go-sql-driver/mysql"
+	"gorm.io/gorm"
 )
 
 func TestInsertNewUser(t *testing.T) {
@@ -110,8 +112,15 @@ func TestDeleteUserByID(t *testing.T) {
     username := "john"
     password := "pass"
     email := "john.son@gmail.com"
-    _, err := db.InsertNewUserWEmail(username, password, email)
+    userID, err := db.InsertNewUserWEmail(username, password, email)
     checkErr(t, "Error inserting user", err)
+
+    name := "guld"
+    serverID, err := db.InsertNewServer(name)
+    checkErr(t, "Error inserting new server", err)
+
+    err = db.AddUserToServer(userID, serverID, ROLE_NORMAL)
+    checkErr(t, "Error adding user to server", err)
 
     users, err := db.GetAllUsers()
     checkErr(t, "Error getting users", err)
@@ -125,6 +134,24 @@ func TestDeleteUserByID(t *testing.T) {
     checkErr(t, "Error getting users", err)
     if len(users) != 0 {
         t.Fatal("User was not deleted")
+    }
+
+    users, err = db.GetAllUsersByServerID(serverID)
+    checkErr(t, "Error getting users by server", err)
+
+    if len(users) != 0 {
+        t.Fatal("User is still in server")
+    }
+    userServer, err := db.GetUserServerByIDs(userID, serverID)
+    if !errors.Is(err, gorm.ErrRecordNotFound) {
+        t.Fatalf("UserServer not deleted. userServer: %+v\n", userServer)
+    }
+
+    server, err := db.GetServerByID(serverID)
+    checkErr(t, "Error getting server", err)
+
+    if len(server.Users) != 0 {
+        t.Fatal("Server still holds user")
     }
 }
 

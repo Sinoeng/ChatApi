@@ -1,9 +1,11 @@
 package database
 
+import "gorm.io/gorm/clause"
+
 type Server struct {
 	ID    uint   `gorm:"primaryKey"`
 	Name  string `gorm:"not null"`
-	Users []User `gorm:"many2many:user_servers;foreignKey:ID;joinForeignKey:ServerID;References:ID;joinReferences:UserID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	Users []User `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;many2many:user_servers;foreignKey:ID;joinForeignKey:ServerID;References:ID;joinReferences:UserID;"`
 }
 
 func (self *ChatApiDB) InsertNewServer(name string) (uint, error) {
@@ -27,7 +29,7 @@ func (self *ChatApiDB) GetAllServers() ([]Server, error) {
 }
 
 func (self *ChatApiDB) DeleteServerByID(serverID uint) error {
-	return self.db.Delete(&Server{ID: serverID}).Error
+	return self.db.Select(clause.Associations).Delete(&Server{ID: serverID}).Error
 }
 
 func (self *ChatApiDB) ChangeServerName(serverID uint, newName string) error {

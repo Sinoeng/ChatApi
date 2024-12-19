@@ -24,6 +24,14 @@ func TestDeleteServer(t *testing.T) {
     name := "guld"
     id, err := db.InsertNewServer(name)
     checkErr(t, "Error inserting new server", err)
+
+    username := "john"
+    password := "pass"
+    userID, err := db.InsertNewUser(username, password)
+    checkErr(t, "Error inserting new user", err)
+
+    err = db.AddUserToServer(userID, id, ROLE_NORMAL)
+    checkErr(t, "Error adding user to server", err)
     
     server, err := db.GetServerByID(id)
     checkErr(t, "Error getting server", err)
@@ -37,6 +45,18 @@ func TestDeleteServer(t *testing.T) {
     server, err = db.GetServerByID(id)
     if !errors.Is(err, gorm.ErrRecordNotFound) {
         t.Fatalf("Incorrect error received. Error: %s\n", err)
+    }
+
+    _, err = db.GetUserServerByIDs(userID, id)
+    if !errors.Is(err, gorm.ErrRecordNotFound) {
+        t.Fatal("UserServer still exists")
+    }
+
+    user, err := db.GetUserByID(userID)
+    checkErr(t, "Error getting user by id", err)
+
+    if len(user.Servers) != 0 {
+        t.Fatal("User still holds the server")
     }
 }
 

@@ -4,7 +4,7 @@ package database
 type Message struct {
     ID uint `gorm:"primaryKey"`
     UserID uint `gorm:"not null"`
-    ServerID uint
+    ServerID uint `gorm:"not null"`
     Payload string
 }
 
