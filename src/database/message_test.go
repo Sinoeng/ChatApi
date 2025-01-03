@@ -107,7 +107,7 @@ func TestDeleteMessage(t *testing.T) {
     }
 }
 
-func TestMessagesByUserIDAndServerID(t *testing.T) {
+func TestGetMessagesByUserIDAndServerID(t *testing.T) {
     resetDB()
     username := "john"
     password := "pass"
