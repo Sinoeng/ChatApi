@@ -6,10 +6,16 @@ type User struct {
 	ID       uint      `gorm:"primaryKey"`
 	Username string    `gorm:"not null;unique"`
 	Password string    `gorm:"not null"`
-	Email    string    `gorm:"default:null"`
+	Email    UserEmail `gorm:"foreignKey:UserID"`
 	Admin    bool      `gorm:"default:false"`
 	Servers  []Server  `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;many2many:user_servers;foreignKey:ID;joinForeignKey:UserID;References:ID;joinReferences:ServerID;"`
 	Messages []Message `gorm:"foreignKey:UserID"`
+}
+
+type UserEmail struct {
+	ID     uint   `gorm:"primaryKey"`
+	UserID uint
+	Email  string `gorm:"default:null"`
 }
 
 func (self *ChatApiDB) InsertNewUser(username, password string) (uint, error) {
@@ -25,7 +31,9 @@ func (self *ChatApiDB) InsertNewUserWEmail(username, password, email string) (ui
 	user := User{
 		Username: username,
 		Password: password,
-		Email:    email,
+		Email: UserEmail{
+			Email: email,
+		},
 	}
 	err := self.db.Create(&user).Error
 	return user.ID, err
@@ -45,7 +53,9 @@ func (self *ChatApiDB) InsertNewUserWEmailAsAdmin(username, password, email stri
 	user := User{
 		Username: username,
 		Password: password,
-		Email:    email,
+		Email:    UserEmail{
+			Email: email,
+		},
 		Admin:    true,
 	}
 	err := self.db.Create(&user).Error
@@ -60,7 +70,7 @@ func (self *ChatApiDB) ChangeUserEmailByID(userID uint, email string) error {
 		tx.Rollback()
 		return err
 	}
-	user.Email = email
+	user.Email.Email = email
 	err = tx.Save(&user).Error
 	if err != nil {
 		tx.Rollback()
@@ -79,19 +89,19 @@ func (self *ChatApiDB) DeleteUserByID(id uint) error {
 
 func (self *ChatApiDB) GetUserByID(id uint) (User, error) {
 	var res User
-	err := self.db.Where(&User{ID: id}).First(&res).Error
+	err := self.db.Preload("Email").Where(&User{ID: id}).First(&res).Error
 	return res, err
 }
 
 func (self *ChatApiDB) GetUserByUsername(username string) (User, error) {
 	var res User
-	err := self.db.Where(&User{Username: username}).First(&res).Error
+	err := self.db.Preload("Email").Where(&User{Username: username}).First(&res).Error
 	return res, err
 }
 
 func (self *ChatApiDB) GetAllUsers() ([]User, error) {
 	var res []User
-	err := self.db.Find(&res).Error
+	err := self.db.Preload("Email").Find(&res).Error
 	return res, err
 }
 
