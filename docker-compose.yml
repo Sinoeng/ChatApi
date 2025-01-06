@@ -84,7 +84,6 @@ services:
       EMAIL_CHANNEL: ${EMAIL_CHANNEL}
       EMAIL_ADDRESS: ${EMAIL_ADDRESS}
       EMAIL_SENDER: ${EMAIL_SENDER}
-      EMAIL_PASSWORD: ${EMAIL_PASSWORD}
 
   # user_recieve:
   #   build:

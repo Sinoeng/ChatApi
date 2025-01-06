@@ -3,6 +3,7 @@ module emailService
 go 1.23.2
 
 require (
+	github.com/joho/godotenv v1.5.1
 	github.com/redis/go-redis/v9 v9.7.0
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df
 )

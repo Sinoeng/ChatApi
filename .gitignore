@@ -1,2 +1,3 @@
 .idea
+services/emailing/.env
 coverage
