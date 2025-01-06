@@ -83,6 +83,27 @@ func (self *ChatApiDB) ChangeUserEmailByID(userID uint, email string) error {
 	return err
 }
 
+func (self *ChatApiDB) ChangeUserPasswordByID(userID uint, newPassword string) error {
+    tx := self.db.Begin()
+    var user User
+    err := tx.First(&user, userID).Error
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+    user.Password = newPassword
+    err = tx.Save(&user).Error
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+    err = tx.Commit().Error
+	if err != nil {
+		tx.Rollback()
+	}
+    return err
+}
+
 func (self *ChatApiDB) DeleteUserByID(id uint) error {
 	return self.db.Select(clause.Associations).Delete(&User{ID: id}).Error
 }

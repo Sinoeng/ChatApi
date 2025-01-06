@@ -6,8 +6,6 @@ services:
   pubsub:
     image: redis
     container_name: redisPubSub
-    # ports: 
-    # - 6379:6379
 
   primary_db:
     image: mysql:9.1.0
@@ -38,17 +36,19 @@ services:
     depends_on:
       primary_db:
         condition: service_healthy
+      pubsub:
+        condition: service_started
     ports: 
       - 8080:8080
     # restart: always
     environment:
       PS_HOST: pubsub
+      EMAIL_CHANNEL: ${EMAIL_CHANNEL}
       DB_HOST: primary_db
       MYSQL_DATABASE: ${DB_NAME}
       MYSQL_USER: ${DB_USER}
       MYSQL_PASSWORD: ${DB_PASSWORD}
       MYSQL_PORT: 3306
-    command: "1"
 
   primary_test:
     build: 
@@ -69,6 +69,22 @@ services:
     volumes: 
       - ./coverage:/app/coverage
 
+  email_service:
+    build:
+      context: services/emailing
+    container_name: email_service
+    depends_on:
+      primary_service:
+        condition: service_started
+      pubsub:
+        condition: service_started
+    # restart: always
+    environment:
+      PS_HOST: pubsub
+      EMAIL_CHANNEL: ${EMAIL_CHANNEL}
+      EMAIL_ADDRESS: ${EMAIL_ADDRESS}
+      EMAIL_SENDER: ${EMAIL_SENDER}
+      EMAIL_PASSWORD: ${EMAIL_PASSWORD}
 
   # user_recieve:
   #   build:
