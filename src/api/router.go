@@ -6,15 +6,18 @@ import (
 	"primary/api/middleware/jwt"
 	"primary/database"
 	docs "primary/docs"
+	"primary/pubsub"
 
 	swaggerfiles "github.com/swaggo/files"     // swagger embed files
 	ginSwagger "github.com/swaggo/gin-swagger" // gin-swagger middleware
 )
 
 var db *database.ChatApiDB
+var toPSCh chan pubsub.Message
 
-func InitRouter(database *database.ChatApiDB) *gin.Engine {
+func InitRouter(database *database.ChatApiDB, sendCh chan pubsub.Message) *gin.Engine {
 	db = database
+    toPSCh = sendCh
 	var router = gin.Default()
 
 	v1 := router.Group("/v1")

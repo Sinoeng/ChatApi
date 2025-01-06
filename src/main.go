@@ -4,6 +4,7 @@ import (
 	"log"
 	"primary/api"
 	"primary/database"
+	"primary/pubsub"
 )
 
 func main() {
@@ -12,5 +13,7 @@ func main() {
 		log.Fatalf("Failed to init db. Error: %s\n", err.Error())
 	}
 
-	api.InitRouter(db).Run()
+    sendCh := make(chan pubsub.Message, 100)
+    go pubsub.Transmitter(sendCh)
+	api.InitRouter(db, sendCh).Run()
 }

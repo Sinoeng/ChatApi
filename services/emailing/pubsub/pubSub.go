@@ -2,6 +2,7 @@ package pubsub
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -12,6 +13,8 @@ import (
 
 type Message struct {
     Payload string
+    Receiver string
+    Subject string
     Channel string
 }
 
@@ -31,9 +34,17 @@ func Listener(receiveCh chan Message, channelName string) {
 
     for msg := range pubsub.Channel() {
         fmt.Printf("Received message: %s\n", msg.Payload)
+        m := Message{}
+        err := json.Unmarshal([]byte(msg.Payload), &m)
+        if err != nil {
+            log.Println("Failed to unmarshal msg")
+            continue
+        }
         receiveCh <- Message{
-            Payload: msg.Payload,
-            Channel: msg.Channel,
+            Payload: m.Payload,
+            Channel: m.Channel,
+            Subject: m.Subject,
+            Receiver: m.Receiver,
         }
     }
 
@@ -58,7 +69,6 @@ func Transmitter(sendCh chan Message) {
         }
         log.Println("Message sent")
     }
-
 }
 
 func Interpreter(receiveCh chan Message) {
@@ -66,21 +76,24 @@ func Interpreter(receiveCh chan Message) {
     for {
         msg = <- receiveCh
         log.Printf("Interpreter says: %s\n", msg.Payload)
-        go sendEmail()
+        go sendEmail(msg)
     }
 }
 
-func sendEmail() {
-    msg := gomail.NewMessage()
-    msg.SetHeader("From", "matzuu-0@student.ltu.se")
-    msg.SetHeader("To", "simeng-0@student.ltu.se")
-    msg.SetHeader("Subject", "TestingGrey")
-    msg.SetBody("text/plain", "Yo Jane. \nHere's some text I'm sending")
+func sendEmail(msg Message) {
+    mail := gomail.NewMessage()
+    mail.SetHeader("From", os.Getenv("EMAIL_ADDRESS"))
+    mail.SetHeader("To", msg.Receiver)
+    mail.SetHeader("Subject", msg.Subject)
+    mail.SetBody("text/plain", msg.Payload)
+    log.Printf("Msg: %+v\n", msg)
 
     dialer := gomail.NewDialer("smtp.gmail.com", 587, os.Getenv("EMAIL_ADDRESS"), os.Getenv("EMAIL_PASSWORD"))
 
-    err := dialer.DialAndSend(msg)
+    err := dialer.DialAndSend(mail)
     if err != nil {
         log.Printf("Err %s\n", err.Error())
+        return
     }
+    log.Println("Message sent")
 }

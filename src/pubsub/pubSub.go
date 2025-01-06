@@ -2,6 +2,7 @@ package pubsub
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -11,6 +12,8 @@ import (
 
 type Message struct {
     Payload string
+    Receiver string
+    Subject string
     Channel string
 }
 
@@ -48,10 +51,14 @@ func Transmitter(sendCh chan Message) {
 
     // Publish a message
     var msg Message
-    var err error
     for {
         msg = <- sendCh
-        err = rdb.Publish(ctx, msg.Channel, msg.Payload).Err()
+        m, err := json.Marshal(msg)
+        if err != nil {
+            log.Println("Error marshalling msg")
+            continue
+        }
+        err = rdb.Publish(ctx, msg.Channel, m).Err()
         if err != nil {
             log.Fatal(err)
         }
