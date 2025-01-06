@@ -2,156 +2,146 @@ package api
 
 import (
 	"net/http"
+	"primary/api/middleware/authorization"
 	"primary/database"
+	"primary/utils"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt/v5"
-	"gorm.io/gorm"
 )
 
-func NewServerHandler(c *gin.Context) { // add user that created it to server
-	tokenAny, exists := c.Get("token")
-	if !exists {
-		return
-	}
-	token := tokenAny.(*jwt.Token)
-	claims, ok := token.Claims.(jwt.MapClaims)
-	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not read token claims"})
-		return
-	}
-	userid := uint(claims["userid"].(float64))
+type ServerString struct {
+	Name string `form:"name" json:"name" xml:"name" binding:"required"`
+}
 
-	name := c.Query("name")
+type ServerID struct {
+	ID uint `form:"id" json:"id" xml:"id" binding:"required"`
+}
+
+func newServerHandler(c *gin.Context) {
+	// get the user id of sender
+	claims, err := utils.GetClaims(c)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "jwt error"})
+		return
+	}
+	userid := claims.Userid // all numbers are float64 after demarshal from json
+
+	// extract server name from request
+	var serverName ServerString
+	if err := c.Bind(&serverName); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "could not get server name from request"})
+		return
+	}
+	name := serverName.Name
 	if name == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "name cannot be empty"})
+		return
 	}
 
+	// create a new server
 	serverID, err := db.InsertNewServer(name)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not create a new server"})
+		return
 	}
 
+	// add creator to server as admin
 	if err := db.AddUserToServer(userid, serverID, database.ROLE_SERVER_ADMIN); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not create a new server"})
+		return
 	}
 	c.JSON(http.StatusOK, gin.H{"status": "server " + name + " created with id " + strconv.FormatUint(uint64(serverID), 10)})
 }
 
-func DeleteServerHandler(c *gin.Context) {
-	tokenAny, exists := c.Get("token")
-	if !exists {
-		return
-	}
-	token := tokenAny.(*jwt.Token)
-	claims, ok := token.Claims.(jwt.MapClaims)
-	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not read token claims"})
-		return
-	}
-
+func deleteServerHandler(c *gin.Context) {
+	//get server id from request
 	serverID, err := strconv.ParseUint(c.Param("serverid"), 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error:": err.Error()})
-		return
-	}
-
-	userid := uint(claims["userid"].(float64))
-
-	userServer, err := db.GetUserServerByIDs(userid, uint(serverID))
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error:": err.Error()})
-		return
-	}
-	if userServer.Role != database.ROLE_SERVER_ADMIN {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "you do not have permission to delete this server"})
+		c.JSON(http.StatusBadRequest, gin.H{"error:": "serverid is not a number"})
 		return
 	}
 
 	if err := db.DeleteServerByID(uint(serverID)); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error:": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error:": "no such server"})
 	}
+
 	c.JSON(http.StatusOK, gin.H{"status": "server successfully deleted"})
 }
 
-func ChangeServerNameHandler(c *gin.Context) {
-	tokenAny, exists := c.Get("token")
-	if !exists {
-		return
-	}
-	token := tokenAny.(*jwt.Token)
-	claims, ok := token.Claims.(jwt.MapClaims)
-	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not read token claims"})
-		return
-	}
+func changeServerNameHandler(c *gin.Context) {
 	serverID, err := strconv.ParseUint(c.Param("serverid"), 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error:": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error:": "serverid is not a number"})
 		return
 	}
-	userid := uint(claims["userid"].(float64))
-	userServer, err := db.GetUserServerByIDs(userid, uint(serverID))
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error:": err.Error()})
+
+	//get new server name from request
+	var newServerName ServerString
+	if err := c.Bind(&newServerName); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "could not read server name"})
 		return
 	}
-	if userServer.Role != database.ROLE_SERVER_ADMIN {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "you do not have permission to change the name of this server"})
-		return
+
+	if err := db.ChangeServerName(uint(serverID), newServerName.Name); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error:": "no such server"})
 	}
-	var serverName ServerName
-	if err := c.Bind(&serverName); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-	if err := db.ChangeServerName(uint(serverID), serverName.Name); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error:": err.Error()})
-	}
+
 	c.JSON(http.StatusOK, gin.H{"status": "server name changed"})
 }
 
-type ServerName struct {
-	Name string `form:"name" json:"name" xml:"name" binding:"required"`
-}
-
-func GetUsersByServerHandler(c *gin.Context) {
-	//check that requesting user is memeber or admin
-	tokenAny, exists := c.Get("token")
-	if !exists {
-		return
-	}
-	token := tokenAny.(*jwt.Token)
-	claims, ok := token.Claims.(jwt.MapClaims)
-	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not read token claims"})
-		return
-	}
+func getUsersByServerHandler(c *gin.Context) {
+	//get server id from request
 	serverID, err := strconv.ParseUint(c.Param("serverid"), 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error:": err.Error()})
-		return
-	}
-	userid := uint(claims["userid"].(float64))
-
-	_, err = db.GetUserServerByIDs(userid, uint(serverID))
-	if err == gorm.ErrRecordNotFound {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "not a memeber of this server"})
+		c.JSON(http.StatusBadRequest, gin.H{"error:": "serverid is not a number"})
 		return
 	}
 
 	server, err := db.GetServerByID(uint(serverID))
-	users := server.Users
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error:": "no such server"})
+		return
+	}
 
+	users := server.Users
 	c.JSON(http.StatusOK, gin.H{"data": users})
 }
 
-func AddServerRoutes(grp *gin.RouterGroup) {
-	server := grp.Group("/server")
+func addUser(c *gin.Context) {
+	//get server id from request
+	serverID, err := strconv.ParseUint(c.Param("serverid"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error:": "serverid is not a number"})
+		return
+	}
 
-	server.GET("/users/:serverid", GetUsersByServerHandler)
-	server.POST("/new", NewServerHandler)
-	server.PATCH("/:serverid", ChangeServerNameHandler)
-	server.DELETE("/:serverid", removeHandler) //TODO make so user only can delete self
+	var userIDStruct ServerID
+	if err := c.Bind(&userIDStruct); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "could not get userid from request"})
+		return
+	}
+	userID := userIDStruct.ID
+
+	if err = db.AddUserToServer(userID, uint(serverID), database.ROLE_NORMAL); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "could not add user to server"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"status": "user added to server"})
+}
+
+func AddServerRoutes(grp *gin.RouterGroup) {
+	grp.POST("/:serverid/adduser", func(c *gin.Context) {
+		authorization.AuthorizeMiddleware(c, db, authorization.CheckGlobalAdmin, authorization.CheckServerAdmin)
+	}, addUser)
+	grp.GET("/:serverid/users", func(c *gin.Context) {
+		authorization.AuthorizeMiddleware(c, db, authorization.CheckGlobalAdmin, authorization.CheckServerMember)
+	}, getUsersByServerHandler)
+	grp.POST("/new", newServerHandler)
+	grp.PATCH("/:serverid", func(c *gin.Context) {
+		authorization.AuthorizeMiddleware(c, db, authorization.CheckGlobalAdmin, authorization.CheckServerAdmin)
+	}, changeServerNameHandler)
+	grp.DELETE("/:serverid", func(c *gin.Context) {
+		authorization.AuthorizeMiddleware(c, db, authorization.CheckGlobalAdmin, authorization.CheckServerAdmin)
+	}, deleteServerHandler)
 }

@@ -16,16 +16,21 @@ var db *database.ChatApiDB
 func InitRouter(database *database.ChatApiDB) *gin.Engine {
 	db = database
 	var router = gin.Default()
-
-	router.POST("/login", LoginHandler)
-	router.POST("/newuser", NewHandler)
-	router.GET("/ping", PingHandler)
-
 	v1 := router.Group("/v1")
-	v1.Use(jwt.JWT())
+	v1.POST("/login", LoginHandler)
+	v1.POST("/newuser", NewHandler)
+	v1.GET("/ping", PingHandler)
 
-	AddUserRoutes(v1)
-	AddServerRoutes(v1)
+	ProtectedGroup := v1.Group("/protected")
+	ProtectedGroup.Use(jwt.JWT())
+
+	ServerGroup := ProtectedGroup.Group("/server")
+	UserGroup := ProtectedGroup.Group("/user")
+	MessageGroup := ServerGroup.Group("/message")
+
+	AddUserRoutes(UserGroup)
+	AddServerRoutes(ServerGroup)
+	AddMessageRoutes(MessageGroup)
 
 	docs.SwaggerInfo.BasePath = "/v1"
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler)) // add swagger

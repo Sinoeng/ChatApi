@@ -3,6 +3,7 @@ package api
 import (
 	"net/http"
 	"os"
+	jwtMiddleware "primary/api/middleware/jwt"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -10,41 +11,35 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+type User struct {
+	Name     string `form:"name" json:"name" xml:"name"  binding:"required"`
+	Password string `form:"password" json:"password" xml:"password" binding:"required"`
+	Email    string `form:"email" json:"email" xml:"email"`
+}
+
 func LoginHandler(c *gin.Context) { // issue jwt
 	var creds User
 
 	if err := c.Bind(&creds); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "could not extract user from request"})
 		return
 	}
 
 	user, err := db.GetUserByUsername(creds.Name)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "password or username icorrect"})
 		return
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(creds.Password))
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "password or username icorrect"})
 		return
 	}
 
-	dbUser, err := db.GetUserByUsername(creds.Name)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	type MyCustomClaims struct {
-		Username string `json:"username"`
-		Userid   uint   `json:"userid"`
-		jwt.RegisteredClaims
-	}
-
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, MyCustomClaims{
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwtMiddleware.MyCustomClaims{ //TODO: make issue jwt function
 		Username: creds.Name,
-		Userid:   dbUser.ID,
+		Userid:   user.ID,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(24 * time.Hour)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
@@ -55,15 +50,19 @@ func LoginHandler(c *gin.Context) { // issue jwt
 
 	// Sign and get the complete encoded token as a string using the secret
 	tokenString, err := token.SignedString([]byte(os.Getenv("JWT_KEY")))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not issue jwt"})
+		return
+	}
 
-	c.JSON(http.StatusOK, gin.H{"status": "Logged in successfully", "token": tokenString}) //TODO: issue jwt
+	c.JSON(http.StatusOK, gin.H{"status": "Logged in successfully", "token": tokenString, "userid": user.ID}) //TODO: issue jwt
 }
 
-func NewHandler(c *gin.Context) { //TODO: add email
+func NewHandler(c *gin.Context) {
 	var usr User
 
 	if err := c.Bind(&usr); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "could not get user information"})
 		return
 	}
 
@@ -76,12 +75,12 @@ func NewHandler(c *gin.Context) { //TODO: add email
 
 	if usr.Email == "" {
 		if _, err := db.InsertNewUser(usr.Name, string(bytes)); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			c.JSON(http.StatusBadRequest, gin.H{"error": "could not create user"})
 			return
 		}
 	} else {
 		if _, err := db.InsertNewUserWEmail(usr.Name, string(bytes), usr.Email); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			c.JSON(http.StatusBadRequest, gin.H{"error": "could not create user"})
 			return
 		}
 	}

@@ -8,13 +8,18 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
+type MyCustomClaims struct {
+	Username string `json:"username"`
+	Userid   uint   `json:"userid"`
+	jwt.RegisteredClaims
+}
+
 func JWT() gin.HandlerFunc {
 	return func(c *gin.Context) {
-
-		unparsedToken := c.Request.Header.Get("token")
+		unparsedToken := c.Request.Header.Get("Authorization")
 		fmt.Println("unparsed token:", unparsedToken)
 
-		token, err := jwt.Parse(unparsedToken, func(token *jwt.Token) (interface{}, error) {
+		token, err := jwt.ParseWithClaims(unparsedToken, &MyCustomClaims{}, func(token *jwt.Token) (interface{}, error) {
 			return []byte(os.Getenv("JWT_KEY")), nil
 		})
 
@@ -23,15 +28,14 @@ func JWT() gin.HandlerFunc {
 			return
 		}
 
-		if claims, ok := token.Claims.(jwt.MapClaims); ok {
-			fmt.Print(claims["username"])
+		if claims, ok := token.Claims.(*MyCustomClaims); ok {
+			fmt.Println("JWT VALIDATED")
+			fmt.Print(claims.Username)
+			c.Set("claims", claims)
+			c.Next()
 		} else {
 			fmt.Println(err)
 			return
 		}
-
-		fmt.Println("JWT VALIDATED")
-		c.Set("token", token)
-		c.Next()
 	}
 }

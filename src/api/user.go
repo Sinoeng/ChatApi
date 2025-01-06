@@ -2,80 +2,48 @@ package api
 
 import (
 	"net/http"
+	"primary/api/middleware/authorization"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt/v5"
 )
 
-type User struct {
-	Name     string `form:"name" json:"name" xml:"name"  binding:"required"`
-	Password string `form:"password" json:"password" xml:"password" binding:"required"`
-	Email    string `form:"email" json:"email" xml:"email"`
-}
-
-// TODO update status codes and look over error handling for ALL functions
-
-func GetServersHandler(c *gin.Context) {
-	tokenAny, exists := c.Get("token")
-	if !exists {
-		return
-	}
-	token := tokenAny.(*jwt.Token)
-	claims, ok := token.Claims.(jwt.MapClaims)
-	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not read token claims"})
+func getServersHandler(c *gin.Context) {
+	userid64, err := strconv.ParseUint(c.Param("userid"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "userid is not a number"})
 		return
 	}
 
-	userid := uint(claims["userid"].(float64))
-
-	servers, err := db.GetAllServersByUserID(userid)
+	servers, err := db.GetAllServersByUserID(uint(userid64))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error:": "could not find any servers"})
+		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{"data": servers})
 }
 
-func removeHandler(c *gin.Context) { // TODO: add authentication
-	tokenAny, exists := c.Get("token")
-	if !exists {
-		return
-	}
-	token := tokenAny.(*jwt.Token)
-
-	claims, ok := token.Claims.(jwt.MapClaims)
-	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not read token claims"})
-		return
-	}
-
-	requestName := c.Param("user")
-	dbUsr, err := db.GetUserByUsername(requestName)
+func removeUserHandler(c *gin.Context) { // TODO: add authentication
+	userid64, err := strconv.ParseUint(c.Param("userid"), 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "userid is not a number"})
 		return
 	}
 
-	requestID := dbUsr.ID
-	tokenID := uint(claims["userid"].(float64))
-
-	if requestID != tokenID {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "cannot delete users other than yourself"})
+	if err := db.DeleteUserByID(uint(userid64)); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Could not delete user"})
 		return
 	}
 
-	if err := db.DeleteUserByID(dbUsr.ID); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"status": "deleted user " + requestName})
+	c.JSON(http.StatusOK, gin.H{"status": "deleted user " + strconv.FormatInt(int64(userid64), 10)})
 }
 
 func AddUserRoutes(grp *gin.RouterGroup) {
-	user := grp.Group("/user")
-
-	user.DELETE("/:user", removeHandler) //TODO make so user only can delete self
-	user.GET("/servers", GetServersHandler)
+	grp.DELETE("/:userid", func(c *gin.Context) {
+		authorization.AuthorizeMiddleware(c, db, authorization.CheckGlobalAdmin, authorization.CheckSameUser)
+	}, removeUserHandler) //TODO make so user only can delete self
+	grp.GET("/:userid/servers", func(c *gin.Context) {
+		authorization.AuthorizeMiddleware(c, db, authorization.CheckGlobalAdmin, authorization.CheckSameUser)
+	}, getServersHandler)
 }
