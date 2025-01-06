@@ -12,7 +12,7 @@ type Message struct {
 	Message string `form:"message" json:"message" xml:"message" binding:"required"`
 }
 
-func NewMessageHandler(c *gin.Context) {
+func newMessageHandler(c *gin.Context) {
 	claims, err := utils.GetClaims(c)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "jwt error"})
@@ -41,7 +41,7 @@ func NewMessageHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"status": "message sent", "data": msgID})
 }
 
-func DeleteMessageHandler(c *gin.Context) {
+func deleteMessageHandler(c *gin.Context) {
 	messageID, err := strconv.ParseUint(c.Param("messageid"), 10, 64)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error:": "messageid is not a number"})
@@ -56,7 +56,7 @@ func DeleteMessageHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"status": "message deleted"})
 }
 
-func GetByIdHandler(c *gin.Context) {
+func getByIdHandler(c *gin.Context) {
 	messageID, err := strconv.ParseUint(c.Param("messageid"), 10, 64)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error:": "messageid is not a number"})
@@ -72,7 +72,7 @@ func GetByIdHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"status": "message returned", "data": gin.H{"messageid": message}})
 }
 
-func GetByServerHandler(c *gin.Context) {
+func getByServerHandler(c *gin.Context) {
 	serverID, err := strconv.ParseUint(c.Param("serverid"), 10, 64)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error:": "serverid is not a number"})
@@ -88,7 +88,7 @@ func GetByServerHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"status": "messages returned", "data": messages})
 }
 
-func GetByUserHandler(c *gin.Context) {
+func getByUserHandler(c *gin.Context) {
 	userID, err := strconv.ParseUint(c.Param("userid"), 10, 64)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error:": "userid is not a number"})
@@ -105,9 +105,9 @@ func GetByUserHandler(c *gin.Context) {
 }
 
 func AddMessageRoutes(grp *gin.RouterGroup) { //TODO: add authorization
-	grp.POST("/:serverid", NewMessageHandler)
-	grp.DELETE("/:messageid", DeleteMessageHandler)
-	grp.GET("/byid/:messageid", GetByIdHandler)
-	grp.GET("/byserver/:serverid", GetByServerHandler)
-	grp.GET("/byuser/:userid", GetByUserHandler)
+	grp.POST("/:serverid", newMessageHandler)
+	grp.DELETE("/:messageid", deleteMessageHandler)
+	grp.GET("/byid/:messageid", getByIdHandler)
+	grp.GET("/byserver/:serverid", getByServerHandler)
+	grp.GET("/byuser/:userid", getByUserHandler)
 }

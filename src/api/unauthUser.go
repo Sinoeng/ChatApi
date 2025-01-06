@@ -17,7 +17,7 @@ type User struct {
 	Email    string `form:"email" json:"email" xml:"email"`
 }
 
-func LoginHandler(c *gin.Context) { // issue jwt
+func loginHandler(c *gin.Context) { // issue jwt
 	var creds User
 
 	if err := c.Bind(&creds); err != nil {
@@ -58,7 +58,7 @@ func LoginHandler(c *gin.Context) { // issue jwt
 	c.JSON(http.StatusOK, gin.H{"status": "Logged in successfully", "token": tokenString, "userid": user.ID}) //TODO: issue jwt
 }
 
-func NewHandler(c *gin.Context) {
+func newHandler(c *gin.Context) {
 	var usr User
 
 	if err := c.Bind(&usr); err != nil {
@@ -86,4 +86,9 @@ func NewHandler(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"status": "user created successfully"})
+}
+
+func AddUnauthUserRoutes(grp *gin.RouterGroup) {
+	grp.POST("/login", loginHandler)
+	grp.POST("/newuser", newHandler)
 }
