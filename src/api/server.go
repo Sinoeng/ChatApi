@@ -138,7 +138,7 @@ func AddServerRoutes(grp *gin.RouterGroup) {
 		authorization.AuthorizeMiddleware(c, db, authorization.CheckGlobalAdmin, authorization.CheckServerMember)
 	}, getUsersByServerHandler)
 	grp.POST("/new", newServerHandler)
-	grp.PATCH("/:serverid", func(c *gin.Context) {
+	grp.PATCH("/:serverid/name", func(c *gin.Context) {
 		authorization.AuthorizeMiddleware(c, db, authorization.CheckGlobalAdmin, authorization.CheckServerAdmin)
 	}, changeServerNameHandler)
 	grp.DELETE("/:serverid", func(c *gin.Context) {
