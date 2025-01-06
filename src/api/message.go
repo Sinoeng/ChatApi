@@ -32,12 +32,13 @@ func NewMessageHandler(c *gin.Context) {
 		return
 	}
 
-	if err := db.NewMessage(msg.Message, userID, uint(serverID)); err != nil {
+	msgID, err := db.NewMessage(msg.Message, userID, uint(serverID))
+	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "could not send message"})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"status": "message sent"})
+	c.JSON(http.StatusOK, gin.H{"status": "message sent", "data": msgID})
 }
 
 func DeleteMessageHandler(c *gin.Context) {
@@ -68,7 +69,7 @@ func GetByIdHandler(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"status": "message returned", "data": message})
+	c.JSON(http.StatusOK, gin.H{"status": "message returned", "data": gin.H{"messageid": message}})
 }
 
 func GetByServerHandler(c *gin.Context) {
