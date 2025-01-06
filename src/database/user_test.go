@@ -185,6 +185,24 @@ func TestChangeEmailByID(t *testing.T) {
     }
 }
 
+func TestChangeUserPasswordByID(t *testing.T) {
+    resetDB()
+    username := "john"
+    password := "pass"
+    password2 := "sapp"
+    email := "john.son@gmail.com"
+    userID, err := db.InsertNewUserWEmail(username, password, email)
+    checkErr(t, "Error inserting user", err)
+
+    err = db.ChangeUserPasswordByID(userID, password2)
+
+    user, err := db.GetUserByUsername(username)
+    checkErr(t, "Error getting user2", err)
+    if user.Password != password2 {
+        t.Fatal("Failed to change password")
+    }
+}
+
 func TestDeleteUserByID(t *testing.T) {
     resetDB()
     username := "john"

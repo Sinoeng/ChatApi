@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/redis/go-redis/v9"
+	"gopkg.in/gomail.v2"
 )
 
 type Message struct {
@@ -57,6 +58,7 @@ func Transmitter(sendCh chan Message) {
         }
         log.Println("Message sent")
     }
+
 }
 
 func Interpreter(receiveCh chan Message) {
@@ -64,5 +66,21 @@ func Interpreter(receiveCh chan Message) {
     for {
         msg = <- receiveCh
         log.Printf("Interpreter says: %s\n", msg.Payload)
+        go sendEmail()
+    }
+}
+
+func sendEmail() {
+    msg := gomail.NewMessage()
+    msg.SetHeader("From", "matzuu-0@student.ltu.se")
+    msg.SetHeader("To", "simeng-0@student.ltu.se")
+    msg.SetHeader("Subject", "TestingGrey")
+    msg.SetBody("text/plain", "Yo Jane. \nHere's some text I'm sending")
+
+    dialer := gomail.NewDialer("smtp.gmail.com", 587, os.Getenv("EMAIL_ADDRESS"), os.Getenv("EMAIL_PASSWORD"))
+
+    err := dialer.DialAndSend(msg)
+    if err != nil {
+        log.Printf("Err %s\n", err.Error())
     }
 }
