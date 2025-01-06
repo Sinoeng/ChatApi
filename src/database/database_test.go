@@ -1,16 +1,12 @@
 package database
 
-import (
-	"log"
-	"testing"
-)
+import "testing"
 
 var db *ChatApiDB
 
 func TestMain(m *testing.M) {
     initDB()
 
-    log.Println("FINISHED INIT")
     m.Run()
 
     dropDB()
