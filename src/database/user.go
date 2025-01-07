@@ -175,3 +175,9 @@ func (self *ChatApiDB) UnMakeUserAdmin(userID uint) error {
 	}
 	return err
 }
+
+func (self *ChatApiDB) GetAdminUserCount() (int64, error) {
+    var count int64
+    err := self.db.Model(&User{}).Where(&User{Admin: true}).Count(&count).Error
+    return count, err
+}
