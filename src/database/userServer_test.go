@@ -35,7 +35,7 @@ func TestAddUserToServer(t *testing.T) {
     if len(users) != 1 {
         t.Fatal("Unexpected number of users")
     }
-    if users[0].Username != username || users[0].Password != password {
+    if users[0].Username != username || users[0].Password != "" {
         t.Fatal("Faulty user info")
     }
 

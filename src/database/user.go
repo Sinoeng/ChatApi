@@ -110,19 +110,25 @@ func (self *ChatApiDB) DeleteUserByID(id uint) error {
 
 func (self *ChatApiDB) GetUserByID(id uint) (User, error) {
 	var res User
-	err := self.db.Preload("Email").Where(&User{ID: id}).First(&res).Error
+	err := self.db.Preload("Email").Omit("password").Where(&User{ID: id}).First(&res).Error
 	return res, err
 }
 
 func (self *ChatApiDB) GetUserByUsername(username string) (User, error) {
 	var res User
-	err := self.db.Preload("Email").Where(&User{Username: username}).First(&res).Error
+	err := self.db.Preload("Email").Omit("password").Where(&User{Username: username}).First(&res).Error
 	return res, err
+}
+
+func (self *ChatApiDB) GetUserPasswordByID(userID uint) (string, error) {
+    var res string
+    err := self.db.Model(&User{}).Where(&User{ID: userID}).Select("password").First(&res).Error
+    return res, err
 }
 
 func (self *ChatApiDB) GetAllUsers() ([]User, error) {
 	var res []User
-	err := self.db.Preload("Email").Find(&res).Error
+	err := self.db.Preload("Email").Omit("password").Find(&res).Error
 	return res, err
 }
 

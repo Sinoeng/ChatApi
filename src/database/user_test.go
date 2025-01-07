@@ -39,10 +39,10 @@ func TestInsertNewUser(t *testing.T) {
     if len(users) != 2 {
         t.Fatal("Unexpected number of users")
     }
-    if users[0].Username != username || users[0].Password != password || users[0].Email.Email != "" {
+    if users[0].Username != username || users[0].Password != "" || users[0].Email.Email != "" {
         t.Fatalf("User1 data is incorrect %+v", users[0])
     }
-    if users[1].Username != username2 || users[1].Password != password2 || users[1].Email.Email != "" {
+    if users[1].Username != username2 || users[1].Password != "" || users[1].Email.Email != "" {
         t.Fatalf("User2 data is incorrect %+v", users[1])
     }
 }
@@ -79,10 +79,10 @@ func TestInsertNewUserWEmail(t *testing.T) {
     if len(users) != 2 {
         t.Fatal("Unexpected number of users")
     }
-    if users[0].Username != username || users[0].Password != password || users[0].Email.Email != email || users[0].Admin {
+    if users[0].Username != username || users[0].Password != "" || users[0].Email.Email != email || users[0].Admin {
         t.Fatalf("User1 data is incorrect %+v\n", users[0])
     }
-    if users[1].Username != username2 || users[1].Password != password2 || users[1].Email.Email != email2 || users[1].Admin {
+    if users[1].Username != username2 || users[1].Password != "" || users[1].Email.Email != email2 || users[1].Admin {
         t.Fatalf("User2 data is incorrect %+v\n", users[1])
     }
 }
@@ -117,10 +117,10 @@ func TestInsertNewUserAsAdmin(t *testing.T) {
     if len(users) != 2 {
         t.Fatal("Unexpected number of users")
     }
-    if users[0].Username != username || users[0].Password != password || users[0].Email.Email != "" || !users[0].Admin {
+    if users[0].Username != username || users[0].Password != "" || users[0].Email.Email != "" || !users[0].Admin {
         t.Fatalf("User1 data is incorrect %+v\n", users[0])
     }
-    if users[1].Username != username2 || users[1].Password != password2 || users[1].Email.Email != "" || !users[1].Admin {
+    if users[1].Username != username2 || users[1].Password != "" || users[1].Email.Email != "" || !users[1].Admin {
         t.Fatalf("User2 data is incorrect %+v\n", users[1])
     }
 }
@@ -157,10 +157,10 @@ func TestInsertNewUserWEmailAsAdmin(t *testing.T) {
     if len(users) != 2 {
         t.Fatal("Unexpected number of users")
     }
-    if users[0].Username != username || users[0].Password != password || users[0].Email.Email != email || !users[0].Admin {
+    if users[0].Username != username || users[0].Password != "" || users[0].Email.Email != email || !users[0].Admin {
         t.Fatalf("User1 data is incorrect %+v\n", users[0])
     }
-    if users[1].Username != username2 || users[1].Password != password2 || users[1].Email.Email != email2 || !users[1].Admin {
+    if users[1].Username != username2 || users[1].Password != "" || users[1].Email.Email != email2 || !users[1].Admin {
         t.Fatalf("User2 data is incorrect %+v\n", users[1])
     }
 }
@@ -196,9 +196,9 @@ func TestChangeUserPasswordByID(t *testing.T) {
 
     err = db.ChangeUserPasswordByID(userID, password2)
 
-    user, err := db.GetUserByUsername(username)
-    checkErr(t, "Error getting user2", err)
-    if user.Password != password2 {
+    passwd, err := db.GetUserPasswordByID(userID)
+    checkErr(t, "Error getting user password", err)
+    if passwd != password2 {
         t.Fatal("Failed to change password")
     }
 }
@@ -267,7 +267,7 @@ func TestGetUserByID(t *testing.T) {
     user, err := db.GetUserByID(users[0].ID)
     checkErr(t, "Error getting user", err)
 
-    if user.ID != users[0].ID || user.Username != users[0].Username || user.Password != users[0].Password || user.Email != users[0].Email {
+    if user.ID != users[0].ID || user.Username != users[0].Username || user.Password != "" || users[0].Password != "" || user.Email != users[0].Email {
         t.Fatal("User was not identical")
     }
 }
@@ -282,7 +282,7 @@ func TestMakeUserAdmin(t *testing.T) {
     user, err := db.GetUserByID(id)
     checkErr(t, "Error getting user", err)
 
-    if user.Username != username || user.Password != password || user.Email.Email != "" || user.Admin {
+    if user.Username != username || user.Password != "" || user.Email.Email != "" || user.Admin {
         t.Fatalf("User data is incorrect %+v\n", user)
     }
 
@@ -292,7 +292,7 @@ func TestMakeUserAdmin(t *testing.T) {
     user, err = db.GetUserByID(id)
     checkErr(t, "Error getting user", err)
 
-    if user.Username != username || user.Password != password || user.Email.Email != "" || !user.Admin {
+    if user.Username != username || user.Password != "" || user.Email.Email != "" || !user.Admin {
         t.Fatalf("User data is incorrect %+v\n", user)
     }
 }
@@ -307,7 +307,7 @@ func TestUnMakeUserAdmin(t *testing.T) {
     user, err := db.GetUserByID(id)
     checkErr(t, "Error getting user", err)
 
-    if user.Username != username || user.Password != password || user.Email.Email != "" || !user.Admin {
+    if user.Username != username || user.Password != "" || user.Email.Email != "" || !user.Admin {
         t.Fatalf("User data is incorrect %+v\n", user)
     }
 
@@ -317,7 +317,7 @@ func TestUnMakeUserAdmin(t *testing.T) {
     user, err = db.GetUserByID(id)
     checkErr(t, "Error getting user", err)
 
-    if user.Username != username || user.Password != password || user.Email.Email != "" || user.Admin {
+    if user.Username != username || user.Password != "" || user.Email.Email != "" || user.Admin {
         t.Fatalf("User data is incorrect %+v\n", user)
     }
 }
