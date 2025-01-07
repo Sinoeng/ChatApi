@@ -3,3 +3,5 @@ fix GET localhost:8080/v1/user/servers users is null
 make delete user take id
 make get /user/servers take user id
 change token to Authorization header instead of token header
+user change name
+kick user from server

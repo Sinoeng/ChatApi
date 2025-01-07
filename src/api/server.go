@@ -98,13 +98,12 @@ func getUsersByServerHandler(c *gin.Context) {
 		return
 	}
 
-	server, err := db.GetServerByID(uint(serverID))
+	users, err := db.GetAllUsersByServerID(uint(serverID))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error:": "no such server"})
 		return
 	}
 
-	users := server.Users
 	c.JSON(http.StatusOK, gin.H{"data": users})
 }
 

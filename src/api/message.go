@@ -2,6 +2,7 @@ package api
 
 import (
 	"net/http"
+	"primary/api/middleware/authorization"
 	"primary/utils"
 	"strconv"
 
@@ -105,9 +106,16 @@ func getByUserHandler(c *gin.Context) {
 }
 
 func AddMessageRoutes(grp *gin.RouterGroup) { //TODO: add authorization
-	grp.POST("/:serverid", newMessageHandler)
-	grp.DELETE("/:messageid", deleteMessageHandler)
-	grp.GET("/byid/:messageid", getByIdHandler)
-	grp.GET("/byserver/:serverid", getByServerHandler)
-	grp.GET("/byuser/:userid", getByUserHandler)
+	grp.POST("/:serverid", func(c *gin.Context) {
+		authorization.AuthorizeMiddleware(c, db, authorization.CheckSameUser)
+	}, newMessageHandler)
+	grp.DELETE("/:messageid", func(c *gin.Context) {
+		authorization.AuthorizeMiddleware(c, db, authorization.CheckGlobalAdmin, authorization.CheckServerAdmin, authorization.CheckSameUser)
+	}, deleteMessageHandler)
+	grp.GET("/byserver/:serverid", func(c *gin.Context) {
+		authorization.AuthorizeMiddleware(c, db, authorization.CheckGlobalAdmin, authorization.CheckServerMember)
+	}, getByServerHandler)
+	grp.GET("/byuser/:userid", func(c *gin.Context) {
+		authorization.AuthorizeMiddleware(c, db, authorization.CheckGlobalAdmin, authorization.CheckSameUser)
+	}, getByUserHandler)
 }

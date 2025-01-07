@@ -30,7 +30,7 @@ func loginHandler(c *gin.Context) { // issue jwt
 		return
 	}
 
-	user, err := db.GetUserByUsername(creds.Name)
+	user, err := db.GetUserPasswordByUsername(creds.Name)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "password or username icorrect"})
 		return
@@ -84,16 +84,16 @@ func newHandler(c *gin.Context) {
 			return
 		}
 	} else {
-        if isValidEmail := emailRegex.MatchString(usr.Email); !isValidEmail {
+		if isValidEmail := emailRegex.MatchString(usr.Email); !isValidEmail {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid email address"})
 			return
-        }
+		}
 
 		if _, err := db.InsertNewUserWEmail(usr.Name, string(bytes), usr.Email); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "could not create user"})
 			return
 		}
-        toPSCh <- pubsub.Message{Payload: fmt.Sprintf("A new user %s has been made.", usr.Name), Channel: os.Getenv("EMAIL_CHANNEL"), Receiver: usr.Email, Subject: "Welcome to ChatApi"}
+		toPSCh <- pubsub.Message{Payload: fmt.Sprintf("A new user %s has been made.", usr.Name), Channel: os.Getenv("EMAIL_CHANNEL"), Receiver: usr.Email, Subject: "Welcome to ChatApi"}
 	}
 
 	c.JSON(http.StatusOK, gin.H{"status": "user created successfully"})
