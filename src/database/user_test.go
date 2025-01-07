@@ -196,9 +196,9 @@ func TestChangeUserPasswordByID(t *testing.T) {
 
     err = db.ChangeUserPasswordByID(userID, password2)
 
-    passwd, err := db.GetUserPasswordByUsername(username)
+    user, err := db.GetUserPasswordByUsername(username)
     checkErr(t, "Error getting user password", err)
-    if passwd != password2 {
+    if user.Password != password2 {
         t.Fatal("Failed to change password")
     }
 }

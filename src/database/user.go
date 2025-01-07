@@ -120,9 +120,9 @@ func (self *ChatApiDB) GetUserByUsername(username string) (User, error) {
 	return res, err
 }
 
-func (self *ChatApiDB) GetUserPasswordByUsername(username string) (string, error) {
-    var res string
-    err := self.db.Model(&User{}).Where(&User{Username: username}).Select("password").First(&res).Error
+func (self *ChatApiDB) GetUserPasswordByUsername(username string) (User, error) {
+    var res User
+    err := self.db.Where(&User{Username: username}).First(&res).Error
     return res, err
 }
 
