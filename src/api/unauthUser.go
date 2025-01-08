@@ -22,7 +22,18 @@ type User struct {
 
 var emailRegex = regexp.MustCompile(`^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$`)
 
-func loginHandler(c *gin.Context) { // issue jwt
+// Login godoc
+// @Summary login
+// @Schemes
+// @Description log in by sending username and password, returns a jwt if successful
+// @Tags login unauth
+// @Accept json
+// @Produce json
+// @Param name body string true "user name"
+// @Param password body string true "user password"
+// @Success 200
+// @Router /user/login [post]
+func LoginHandler(c *gin.Context) { // issue jwt
 	var creds User
 
 	if err := c.Bind(&creds); err != nil {
@@ -60,9 +71,21 @@ func loginHandler(c *gin.Context) { // issue jwt
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"status": "Logged in successfully", "token": tokenString, "userid": user.ID}) //TODO: issue jwt
+	c.JSON(http.StatusOK, gin.H{"status": "Logged in successfully", "data": gin.H{"token": tokenString, "userid": user.ID}}) //TODO: issue jwt
 }
 
+// New user godoc
+// @Summary creates a new user
+// @Schemes
+// @Description create a new user by providing username, password and optional email
+// @Tags new_user unauth
+// @Accept json
+// @Produce json
+// @Param name body string true "user name"
+// @Param password body string true "user password"
+// @Param email body string false "user email"
+// @Success 200
+// @Router /user/newuser [post]
 func newHandler(c *gin.Context) {
 	var usr User
 
@@ -100,6 +123,6 @@ func newHandler(c *gin.Context) {
 }
 
 func AddUnauthUserRoutes(grp *gin.RouterGroup) {
-	grp.POST("/login", loginHandler)
+	grp.POST("/login", LoginHandler)
 	grp.POST("/newuser", newHandler)
 }

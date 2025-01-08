@@ -17,7 +17,7 @@ var toPSCh chan pubsub.Message
 
 func InitRouter(database *database.ChatApiDB, sendCh chan pubsub.Message) *gin.Engine {
 	db = database
-    toPSCh = sendCh
+	toPSCh = sendCh
 	var router = gin.Default()
 
 	v1 := router.Group("/v1")
@@ -27,7 +27,7 @@ func InitRouter(database *database.ChatApiDB, sendCh chan pubsub.Message) *gin.E
 
 	ServerGroup := ProtectedGroup.Group("/server")
 	UserGroup := ProtectedGroup.Group("/user")
-	MessageGroup := ServerGroup.Group("/message")
+	MessageGroup := ProtectedGroup.Group("/message")
 
 	v1.GET("/ping", PingHandler)
 

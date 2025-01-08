@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"net/http"
 	"primary/api/middleware/authorization"
 	"primary/database"
@@ -129,6 +130,27 @@ func addUser(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"status": "user added to server"})
 }
 
+func kickUserHandler(c *gin.Context) {
+	serverID, err := strconv.ParseUint(c.Param("serverid"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error:": "serverid is not a number"})
+		return
+	}
+
+	userID, err := strconv.ParseUint(c.Param("userid"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error:": "userid is not a number"})
+		return
+	}
+
+	if err = db.RemoveUserFromServer(uint(userID), uint(serverID)); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error:": "not able to remove that user from that server"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"status:": fmt.Sprintf("user %d removed from server %d", userID, serverID)})
+}
+
 func AddServerRoutes(grp *gin.RouterGroup) {
 	grp.POST("/:serverid/adduser", func(c *gin.Context) {
 		authorization.AuthorizeMiddleware(c, db, authorization.CheckGlobalAdmin, authorization.CheckServerAdmin)
@@ -143,4 +165,7 @@ func AddServerRoutes(grp *gin.RouterGroup) {
 	grp.DELETE("/:serverid", func(c *gin.Context) {
 		authorization.AuthorizeMiddleware(c, db, authorization.CheckGlobalAdmin, authorization.CheckServerAdmin)
 	}, deleteServerHandler)
+	grp.DELETE("/:serverid/:userid", func(c *gin.Context) {
+		authorization.AuthorizeMiddleware(c, db, authorization.CheckGlobalAdmin, authorization.CheckServerAdmin, authorization.CheckSameUser)
+	}, kickUserHandler)
 }

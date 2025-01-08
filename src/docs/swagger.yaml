@@ -16,4 +16,62 @@ paths:
       summary: ping example
       tags:
       - example
+  /user/login:
+    post:
+      consumes:
+      - application/json
+      description: log in by sending username and password, returns a jwt if successful
+      parameters:
+      - description: user name
+        in: body
+        name: name
+        required: true
+        schema:
+          type: string
+      - description: user password
+        in: body
+        name: password
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      summary: login
+      tags:
+      - login unauth
+  /user/newuser:
+    post:
+      consumes:
+      - application/json
+      description: create a new user by providing username, password and optional
+        email
+      parameters:
+      - description: user name
+        in: body
+        name: name
+        required: true
+        schema:
+          type: string
+      - description: user password
+        in: body
+        name: password
+        required: true
+        schema:
+          type: string
+      - description: user email
+        in: body
+        name: email
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      summary: creates a new user
+      tags:
+      - new_user unauth
 swagger: "2.0"
