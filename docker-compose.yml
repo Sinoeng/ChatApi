@@ -11,7 +11,7 @@ services:
     image: mysql:9.1.0
     container_name: primary_db
     healthcheck:
-      test: "mysqladmin ping -h localhost"
+      test: "out=$$(mysqladmin ping -h localhost -u $$MYSQL_USER --password=$$MYSQL_PASSWORD 2>&1); echo $$out | grep 'mysqld is alive' || { echo $$out; exit 1; }"
       interval: 1s
       retries: 50
       start_period: 5s
@@ -49,6 +49,8 @@ services:
       MYSQL_USER: ${DB_USER}
       MYSQL_PASSWORD: ${DB_PASSWORD}
       MYSQL_PORT: 3306
+      DEFAULT_USERNAME: ${DEFAULT_USERNAME}
+      DEFAULT_PASSWORD: ${DEFAULT_PASSWORD}
 
   primary_test:
     build: 

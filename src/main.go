@@ -5,6 +5,7 @@ import (
 	"primary/api"
 	"primary/database"
 	"primary/pubsub"
+	"primary/utils"
 )
 
 func main() {
@@ -12,6 +13,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to init db. Error: %s\n", err.Error())
 	}
+    utils.CreateDefaultAdmin(db)
 
     sendCh := make(chan pubsub.Message, 100)
     go pubsub.Transmitter(sendCh)
