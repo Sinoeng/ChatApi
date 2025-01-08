@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"os"
 	"primary/api"
 	"primary/database"
 	"primary/pubsub"
@@ -9,7 +10,7 @@ import (
 )
 
 func main() {
-	db, err := database.InitDatabase()
+	db, err := database.InitDatabase(os.Getenv("MYSQL_DATABASE"))
 	if err != nil {
 		log.Fatalf("Failed to init db. Error: %s\n", err.Error())
 	}

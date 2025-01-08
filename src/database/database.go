@@ -15,21 +15,19 @@ type ChatApiDB struct {
 	db *gorm.DB // connection pool
 }
 
-func InitDatabase() (*ChatApiDB, error) {
+func InitDatabase(db_name string) (*ChatApiDB, error) {
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
 		os.Getenv("MYSQL_USER"),
 		os.Getenv("MYSQL_PASSWORD"),
 		os.Getenv("DB_HOST"),
 		os.Getenv("MYSQL_PORT"),
-		os.Getenv("MYSQL_DATABASE"),
+		db_name,
 	)
 	gormConfig := gorm.Config{PrepareStmt: true, Logger: logger.Discard}
 	// opens the connection to the database. second arg is configurations
 	db, err := gorm.Open(mysql.Open(dsn), &gormConfig) // db is a connection pool
     switch err.(type){
     case *mysqlErr.MySQLError:
-        db_name := os.Getenv("MYSQL_DATABASE")
-
         query := fmt.Sprintf("CREATE DATABASE IF NOT EXISTS %s", db_name)
         dsn2 := fmt.Sprintf("%s:%s@tcp(%s:%s)/",
             os.Getenv("MYSQL_USER"),
@@ -82,4 +80,12 @@ func (self *ChatApiDB) autoMigration() error {
         &Message{},
         &UserServer{},
 	)
+}
+
+func (self *ChatApiDB) ResetTestDBApi() {
+    self.db.Exec("DROP DATABASE ChatApiTestApi;")
+}
+
+func (self *ChatApiDB) ResetTestDBDB() {
+    self.db.Exec("DROP DATABASE ChatApiTestDB;")
 }

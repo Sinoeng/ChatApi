@@ -2,6 +2,7 @@ package api
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"primary/api/middleware/authorization"
 	"primary/database"
@@ -43,12 +44,14 @@ func newServerHandler(c *gin.Context) {
 	// create a new server
 	serverID, err := db.InsertNewServer(name)
 	if err != nil {
+		log.Printf("Error creating new server. Err: %s\n", err.Error())
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not create a new server"})
 		return
 	}
 
 	// add creator to server as admin
 	if err := db.AddUserToServer(userid, serverID, database.ROLE_SERVER_ADMIN); err != nil {
+		log.Printf("Error inserting user into new server. Err: %s\n", err.Error())
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not create a new server"})
 		return
 	}

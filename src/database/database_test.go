@@ -1,6 +1,9 @@
 package database
 
-import "testing"
+import (
+	"os"
+	"testing"
+)
 
 var db *ChatApiDB
 
@@ -9,24 +12,20 @@ func TestMain(m *testing.M) {
 
     m.Run()
 
-    dropDB()
+    db.ResetTestDBDB()
 }
 
 func initDB() {
     var err error
-    db, err = InitDatabase()
+    db, err = InitDatabase(os.Getenv("MYSQL_DATABASE")+"DB")
     if err != nil {
         println("Panicing in init DB")
         panic(err)
     }
 }
 
-func dropDB() {
-    db.db.Exec("DROP DATABASE ChatApiTest;")
-}
-
 func resetDB() {
-    dropDB()
+    db.ResetTestDBDB()
     initDB()
 }
 

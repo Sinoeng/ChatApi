@@ -25,7 +25,7 @@ services:
     command: >
       bash -c '
       echo "CREATE DATABASE IF NOT EXISTS $DB_NAME_TEST;
-      GRANT ALL ON $DB_NAME_TEST.* TO \`$DB_USER\`@\`%\`;" > /docker-entrypoint-initdb.d/createTestDB.sql;
+      GRANT ALL ON \`${DB_NAME_TEST}%\`.* TO \`$DB_USER\`@\`%\`;" > /docker-entrypoint-initdb.d/createTestDB.sql;
       docker-entrypoint.sh mysqld
       '
     

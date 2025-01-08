@@ -7,4 +7,4 @@ RUN go mod download
 
 COPY . ./
 ENTRYPOINT ["go", "test", "-coverprofile=coverage/coverage.html", "./..."]
-CMD ["-v"]
+# CMD ["-v"]
