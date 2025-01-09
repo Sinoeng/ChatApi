@@ -51,6 +51,7 @@ func newServerHandler(c *gin.Context) {
 
 	// add creator to server as admin
 	if err := db.AddUserToServer(userid, serverID, database.ROLE_SERVER_ADMIN); err != nil {
+        // we should remove the server as well
 		log.Printf("Error inserting user into new server. Err: %s\n", err.Error())
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not create a new server"})
 		return

@@ -2,6 +2,7 @@ package api
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	jwtMiddleware "primary/api/middleware/jwt"
@@ -37,19 +38,20 @@ func LoginHandler(c *gin.Context) { // issue jwt
 	var creds User
 
 	if err := c.Bind(&creds); err != nil {
+        log.Printf("Error trying to bind user credentials. Err: %s\n", err.Error())
 		c.JSON(http.StatusBadRequest, gin.H{"error": "could not extract user from request"})
 		return
 	}
 
 	user, err := db.GetUserPasswordByUsername(creds.Name)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "password or username icorrect"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "password or username incorrect"})
 		return
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(creds.Password))
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "password or username icorrect"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "password or username incorrect"})
 		return
 	}
 
