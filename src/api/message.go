@@ -145,7 +145,7 @@ func getByUserHandler(c *gin.Context) {
 
 func AddMessageRoutes(grp *gin.RouterGroup) { //TODO: add authorization
 	grp.POST("/:serverid", func(c *gin.Context) {
-		authorization.AuthorizeMiddleware(c, db, authorization.CheckSameUser)
+		authorization.AuthorizeMiddleware(c, db, authorization.CheckServerMember)
 	}, newMessageHandler)
 	grp.DELETE("/:messageid", func(c *gin.Context) {
 		authorization.AuthorizeMiddleware(c, db, authorization.CheckGlobalAdmin)

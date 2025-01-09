@@ -3,7 +3,7 @@
 
 ## Instructions
 
-1. Make sure both `docker` and `docker-compose` is installed on your system. 
+1. Make sure both `docker` and `docker-compose` is installed on your system. Make sure the daemon running. 
 2. Clone the git directory and open it in a terminal. 
 3. To start normally, run `docker-compose up --build -d`  
 3.1 To start with the test container as well, run `docker-compose --profile test up --build -d`  
