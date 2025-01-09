@@ -11,5 +11,7 @@
 3.3 On linux. To see what was tested you can run `go tool cover -html=coverage/coverage.html` from the projects root directory. This requires having `go` installed.  
 4. To shut it down, run `docker-compose down`.  
 4.1 If you ran the tests as well, run `docker-compose --profile test down` instead.  
+5. Connect via localhost:8080
 
 There is a default admin user called bob_admin with password bob.
+You can find the api routes in /swagger/index.html, all routes have /v1/ as a prefix.
