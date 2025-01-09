@@ -10,7 +10,7 @@ import (
 // @Summary ping example
 // @Schemes
 // @Description do ping
-// @Tags example
+// @Tags unauth ping
 // @Accept json
 // @Produce json
 // @Success 200 {string} Helloworld

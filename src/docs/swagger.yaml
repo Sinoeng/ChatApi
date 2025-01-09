@@ -15,7 +15,268 @@ paths:
             type: string
       summary: ping example
       tags:
-      - example
+      - unauth ping
+  /protected/message/:messageid:
+    delete:
+      description: delete message with id messageid if you are admin
+      parameters:
+      - description: jwt token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      summary: delete messaage by id
+      tags:
+      - auth message
+  /protected/message/:serverid:
+    post:
+      consumes:
+      - application/json
+      description: send a message to server with serverid if you are a member
+      parameters:
+      - description: jwt token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: message
+        in: body
+        name: message
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      summary: send message to a server
+      tags:
+      - auth message
+  /protected/message/byserver/:serverid:
+    get:
+      description: get message by serverid if you are sever member or admin
+      parameters:
+      - description: jwt token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      summary: get message by server
+      tags:
+      - auth message
+  /protected/message/byuser/:userid:
+    get:
+      description: get message by userid if you are same user or admin
+      parameters:
+      - description: jwt token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      summary: get message by user
+      tags:
+      - auth message
+  /protected/server/:serverid:
+    delete:
+      description: delete a server if you are admin or server admin
+      parameters:
+      - description: jwt token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      summary: delete a server
+      tags:
+      - auth server
+  /protected/server/:serverid/:userid:
+    delete:
+      description: kick user with userid from server if you are server admin, admin
+        or user in question
+      parameters:
+      - description: jwt token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      summary: kick a user from server
+      tags:
+      - auth server
+  /protected/server/:serverid/adduser:
+    post:
+      consumes:
+      - application/json
+      description: add user to server if you are server admin or admin
+      parameters:
+      - description: jwt token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: user id to add
+        in: body
+        name: id
+        required: true
+        schema:
+          type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      summary: add user to server
+      tags:
+      - auth server
+  /protected/server/:serverid/name:
+    patch:
+      consumes:
+      - application/json
+      description: change server name if you are admin or server admin
+      parameters:
+      - description: jwt token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: new server name
+        in: body
+        name: name
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      summary: change server name
+      tags:
+      - auth server
+  /protected/server/:serverid/users:
+    get:
+      description: get users on a server if you are a member of that server or admin
+      parameters:
+      - description: jwt token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      summary: get users on a server
+      tags:
+      - auth server
+  /protected/server/new:
+    post:
+      consumes:
+      - application/json
+      description: create a new server and add creating user as server admin
+      parameters:
+      - description: jwt token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: server name
+        in: body
+        name: name
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      summary: create a new server
+      tags:
+      - auth server
+  /protected/user/:userid:
+    delete:
+      description: get the servers user with userid is a member of
+      parameters:
+      - description: jwt token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      summary: delete a user if you are that user or an admin
+      tags:
+      - auth user
+  /protected/user/:userid/changepassword:
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: jwt token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: new password
+        in: body
+        name: password
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      summary: change user password
+      tags:
+      - auth user
+  /protected/user/:userid/servers:
+    get:
+      description: get the servers user with userid is a member of
+      parameters:
+      - description: jwt token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      summary: get servers of a user
+      tags:
+      - auth user
   /user/login:
     post:
       consumes:
@@ -41,7 +302,7 @@ paths:
           description: OK
       summary: login
       tags:
-      - login unauth
+      - unauth user
   /user/newuser:
     post:
       consumes:
@@ -73,5 +334,5 @@ paths:
           description: OK
       summary: creates a new user
       tags:
-      - new_user unauth
+      - unauth user
 swagger: "2.0"

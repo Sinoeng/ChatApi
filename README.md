@@ -12,3 +12,4 @@
 4. To shut it down, run `docker-compose down`.  
 4.1 If you ran the tests as well, run `docker-compose --profile test down` instead.  
 
+There is a default admin user called bob_admin with password bob.

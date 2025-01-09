@@ -19,6 +19,17 @@ type ServerID struct {
 	ID uint `form:"id" json:"id" xml:"id" binding:"required"`
 }
 
+// new_server godoc
+// @Summary create a new server
+// @Description create a new server and add creating user as server admin
+// @Schemes
+// @Param Authorization header string true "jwt token"
+// @Param name body string true "server name"
+// @Tags auth server
+// @Accept json
+// @Produce json
+// @Success 200
+// @Router /protected/server/new [post]
 func newServerHandler(c *gin.Context) {
 	// get the user id of sender
 	claims, err := utils.GetClaims(c)
@@ -55,6 +66,15 @@ func newServerHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"status": "server " + name + " created with id " + strconv.FormatUint(uint64(serverID), 10)})
 }
 
+// delete_server godoc
+// @Summary delete a server
+// @Description delete a server if you are admin or server admin
+// @Schemes
+// @Param Authorization header string true "jwt token"
+// @Tags auth server
+// @Produce json
+// @Success 200
+// @Router /protected/server/:serverid [delete]
 func deleteServerHandler(c *gin.Context) {
 	//get server id from request
 	serverID, err := strconv.ParseUint(c.Param("serverid"), 10, 64)
@@ -70,6 +90,17 @@ func deleteServerHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"status": "server successfully deleted"})
 }
 
+// change_server_name godoc
+// @Summary change server name
+// @Description change server name if you are admin or server admin
+// @Schemes
+// @Param Authorization header string true "jwt token"
+// @Param name body string true "new server name"
+// @Tags auth server
+// @Accept json
+// @Produce json
+// @Success 200
+// @Router /protected/server/:serverid/name [patch]
 func changeServerNameHandler(c *gin.Context) {
 	serverID, err := strconv.ParseUint(c.Param("serverid"), 10, 64)
 	if err != nil {
@@ -91,6 +122,15 @@ func changeServerNameHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"status": "server name changed"})
 }
 
+// get_users_by_server godoc
+// @Summary get users on a server
+// @Description get users on a server if you are a member of that server or admin
+// @Schemes
+// @Param Authorization header string true "jwt token"
+// @Tags auth server
+// @Produce json
+// @Success 200
+// @Router /protected/server/:serverid/users [get]
 func getUsersByServerHandler(c *gin.Context) {
 	//get server id from request
 	serverID, err := strconv.ParseUint(c.Param("serverid"), 10, 64)
@@ -108,6 +148,17 @@ func getUsersByServerHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": users})
 }
 
+// add_user godoc
+// @Summary add user to server
+// @Description add user to server if you are server admin or admin
+// @Schemes
+// @Param Authorization header string true "jwt token"
+// @Param id body int true "user id to add"
+// @Tags auth server
+// @Accept json
+// @Produce json
+// @Success 200
+// @Router /protected/server/:serverid/adduser [post]
 func addUser(c *gin.Context) {
 	//get server id from request
 	serverID, err := strconv.ParseUint(c.Param("serverid"), 10, 64)
@@ -130,6 +181,15 @@ func addUser(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"status": "user added to server"})
 }
 
+// kick_user godoc
+// @Summary kick a user from server
+// @Description kick user with userid from server if you are server admin, admin or user in question
+// @Schemes
+// @Param Authorization header string true "jwt token"
+// @Tags auth server
+// @Produce json
+// @Success 200
+// @Router /protected/server/:serverid/:userid [delete]
 func kickUserHandler(c *gin.Context) {
 	serverID, err := strconv.ParseUint(c.Param("serverid"), 10, 64)
 	if err != nil {

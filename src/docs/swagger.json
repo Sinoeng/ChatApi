@@ -14,7 +14,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "example"
+                    "unauth ping"
                 ],
                 "summary": "ping example",
                 "responses": {
@@ -23,6 +23,403 @@
                         "schema": {
                             "type": "string"
                         }
+                    }
+                }
+            }
+        },
+        "/protected/message/:messageid": {
+            "delete": {
+                "description": "delete message with id messageid if you are admin",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth message"
+                ],
+                "summary": "delete messaage by id",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "jwt token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/protected/message/:serverid": {
+            "post": {
+                "description": "send a message to server with serverid if you are a member",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth message"
+                ],
+                "summary": "send message to a server",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "jwt token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "message",
+                        "name": "message",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/protected/message/byserver/:serverid": {
+            "get": {
+                "description": "get message by serverid if you are sever member or admin",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth message"
+                ],
+                "summary": "get message by server",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "jwt token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/protected/message/byuser/:userid": {
+            "get": {
+                "description": "get message by userid if you are same user or admin",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth message"
+                ],
+                "summary": "get message by user",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "jwt token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/protected/server/:serverid": {
+            "delete": {
+                "description": "delete a server if you are admin or server admin",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth server"
+                ],
+                "summary": "delete a server",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "jwt token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/protected/server/:serverid/:userid": {
+            "delete": {
+                "description": "kick user with userid from server if you are server admin, admin or user in question",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth server"
+                ],
+                "summary": "kick a user from server",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "jwt token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/protected/server/:serverid/adduser": {
+            "post": {
+                "description": "add user to server if you are server admin or admin",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth server"
+                ],
+                "summary": "add user to server",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "jwt token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "user id to add",
+                        "name": "id",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/protected/server/:serverid/name": {
+            "patch": {
+                "description": "change server name if you are admin or server admin",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth server"
+                ],
+                "summary": "change server name",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "jwt token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "new server name",
+                        "name": "name",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/protected/server/:serverid/users": {
+            "get": {
+                "description": "get users on a server if you are a member of that server or admin",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth server"
+                ],
+                "summary": "get users on a server",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "jwt token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/protected/server/new": {
+            "post": {
+                "description": "create a new server and add creating user as server admin",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth server"
+                ],
+                "summary": "create a new server",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "jwt token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "server name",
+                        "name": "name",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/protected/user/:userid": {
+            "delete": {
+                "description": "get the servers user with userid is a member of",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth user"
+                ],
+                "summary": "delete a user if you are that user or an admin",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "jwt token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/protected/user/:userid/changepassword": {
+            "patch": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth user"
+                ],
+                "summary": "change user password",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "jwt token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "new password",
+                        "name": "password",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/protected/user/:userid/servers": {
+            "get": {
+                "description": "get the servers user with userid is a member of",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth user"
+                ],
+                "summary": "get servers of a user",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "jwt token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
                     }
                 }
             }
@@ -37,7 +434,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "login unauth"
+                    "unauth user"
                 ],
                 "summary": "login",
                 "parameters": [
@@ -77,7 +474,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "new_user unauth"
+                    "unauth user"
                 ],
                 "summary": "creates a new user",
                 "parameters": [

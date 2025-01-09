@@ -26,7 +26,7 @@ var emailRegex = regexp.MustCompile(`^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$`)
 // @Summary login
 // @Schemes
 // @Description log in by sending username and password, returns a jwt if successful
-// @Tags login unauth
+// @Tags unauth user
 // @Accept json
 // @Produce json
 // @Param name body string true "user name"
@@ -78,7 +78,7 @@ func LoginHandler(c *gin.Context) { // issue jwt
 // @Summary creates a new user
 // @Schemes
 // @Description create a new user by providing username, password and optional email
-// @Tags new_user unauth
+// @Tags unauth user
 // @Accept json
 // @Produce json
 // @Param name body string true "user name"

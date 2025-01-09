@@ -14,6 +14,15 @@ type NewPassword struct {
 	Password string `form:"password" json:"password" xml:"password" binding:"required"`
 }
 
+// get_servers godoc
+// @Summary get servers of a user
+// @Schemes
+// @Description get the servers user with userid is a member of
+// @Tags auth user
+// @Param Authorization header string true "jwt token"
+// @Produce json
+// @Success 200
+// @Router /protected/user/:userid/servers [get]
 func getServersHandler(c *gin.Context) {
 	userid64, err := strconv.ParseUint(c.Param("userid"), 10, 64)
 	if err != nil {
@@ -30,6 +39,15 @@ func getServersHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": servers})
 }
 
+// remove_user godoc
+// @Summary delete a user if you are that user or an admin
+// @Schemes
+// @Description get the servers user with userid is a member of
+// @Param Authorization header string true "jwt token"
+// @Tags auth user
+// @Produce json
+// @Success 200
+// @Router /protected/user/:userid [delete]
 func removeUserHandler(c *gin.Context) { // TODO: add authentication
 	userid64, err := strconv.ParseUint(c.Param("userid"), 10, 64)
 	if err != nil {
@@ -45,6 +63,16 @@ func removeUserHandler(c *gin.Context) { // TODO: add authentication
 	c.JSON(http.StatusOK, gin.H{"status": "deleted user " + strconv.FormatInt(int64(userid64), 10)})
 }
 
+// change_password godoc
+// @Summary change user password
+// @Schemes
+// @Param Authorization header string true "jwt token"
+// @Param password body string true "new password"
+// @Tags auth user
+// @Accept json
+// @Produce json
+// @Success 200
+// @Router /protected/user/:userid/changepassword [patch]
 func changePasswordHandler(c *gin.Context) {
 	claims, err := utils.GetClaims(c)
 	if err != nil {
@@ -80,7 +108,7 @@ func AddUserRoutes(grp *gin.RouterGroup) {
 	grp.GET("/:userid/servers", func(c *gin.Context) {
 		authorization.AuthorizeMiddleware(c, db, authorization.CheckGlobalAdmin, authorization.CheckSameUser)
 	}, getServersHandler)
-	grp.POST("/:userid/changepassword", func(c *gin.Context) {
+	grp.PATCH("/:userid/changepassword", func(c *gin.Context) {
 		authorization.AuthorizeMiddleware(c, db, authorization.CheckGlobalAdmin, authorization.CheckSameUser)
 	}, changePasswordHandler)
 }

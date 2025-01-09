@@ -13,6 +13,17 @@ type Message struct {
 	Message string `form:"message" json:"message" xml:"message" binding:"required"`
 }
 
+// new_message godoc
+// @Summary send message to a server
+// @Description send a message to server with serverid if you are a member
+// @Schemes
+// @Param Authorization header string true "jwt token"
+// @Param message body string true "message"
+// @Tags auth message
+// @Accept json
+// @Produce json
+// @Success 200
+// @Router /protected/message/:serverid [post]
 func newMessageHandler(c *gin.Context) {
 	claims, err := utils.GetClaims(c)
 	if err != nil {
@@ -42,6 +53,15 @@ func newMessageHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"status": "message sent", "data": msgID})
 }
 
+// delete_message godoc
+// @Summary delete messaage by id
+// @Description delete message with id messageid if you are admin
+// @Schemes
+// @Param Authorization header string true "jwt token"
+// @Tags auth message
+// @Produce json
+// @Success 200
+// @Router /protected/message/:messageid [delete]
 func deleteMessageHandler(c *gin.Context) {
 	messageID, err := strconv.ParseUint(c.Param("messageid"), 10, 64)
 	if err != nil {
@@ -73,6 +93,15 @@ func getByIdHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"status": "message returned", "data": gin.H{"messageid": message}})
 }
 
+// get_message_by_server godoc
+// @Summary get message by server
+// @Description get message by serverid if you are sever member or admin
+// @Schemes
+// @Param Authorization header string true "jwt token"
+// @Tags auth message
+// @Produce json
+// @Success 200
+// @Router /protected/message/byserver/:serverid [get]
 func getByServerHandler(c *gin.Context) {
 	serverID, err := strconv.ParseUint(c.Param("serverid"), 10, 64)
 	if err != nil {
@@ -89,6 +118,15 @@ func getByServerHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"status": "messages returned", "data": messages})
 }
 
+// get_message_by_user godoc
+// @Summary get message by user
+// @Description get message by userid if you are same user or admin
+// @Schemes
+// @Param Authorization header string true "jwt token"
+// @Tags auth message
+// @Produce json
+// @Success 200
+// @Router /protected/message/byuser/:userid [get]
 func getByUserHandler(c *gin.Context) {
 	userID, err := strconv.ParseUint(c.Param("userid"), 10, 64)
 	if err != nil {
@@ -110,7 +148,7 @@ func AddMessageRoutes(grp *gin.RouterGroup) { //TODO: add authorization
 		authorization.AuthorizeMiddleware(c, db, authorization.CheckSameUser)
 	}, newMessageHandler)
 	grp.DELETE("/:messageid", func(c *gin.Context) {
-		authorization.AuthorizeMiddleware(c, db, authorization.CheckGlobalAdmin, authorization.CheckServerAdmin, authorization.CheckSameUser)
+		authorization.AuthorizeMiddleware(c, db, authorization.CheckGlobalAdmin)
 	}, deleteMessageHandler)
 	grp.GET("/byserver/:serverid", func(c *gin.Context) {
 		authorization.AuthorizeMiddleware(c, db, authorization.CheckGlobalAdmin, authorization.CheckServerMember)
